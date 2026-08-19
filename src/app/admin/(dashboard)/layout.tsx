@@ -19,6 +19,11 @@ export default async function AdminDashboardLayout({
     redirect('/admin/login');
   }
 
+  // Only Admin role can access the dashboard
+  if (session.user.role !== 'Admin') {
+    redirect('/admin/login');
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       <AdminHeader user={session.user} />

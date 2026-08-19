@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { BlogService } from '@/services/blog-service';
 import { updateBlogSchema } from '@/types/schemas';
-import { requireAuth } from '@/utils/auth';
+import { requireAdmin } from '@/utils/auth';
 import { successResponse, errorResponse, handleValidationError, handleError } from '@/utils/api-response';
 
 interface RouteParams {
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return successResponse(blog);
     }
 
-    await requireAuth();
+    await requireAdmin();
     const blog = await BlogService.getBlogById(id);
 
     if (!blog) {
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    await requireAuth();
+    await requireAdmin();
 
     const { id } = await params;
     const body = await request.json();
@@ -61,8 +61,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     return successResponse(blog);
   } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return errorResponse('Unauthorized', 401);
+    if (error instanceof Error) {
+      if (error.message === 'Unauthorized') {
+        return errorResponse('Unauthorized', 401);
+      }
+      if (error.message === 'Forbidden: Admin access required') {
+        return errorResponse('Forbidden: Admin access required', 403);
+      }
     }
     return handleValidationError(error);
   }
@@ -74,7 +79,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    await requireAuth();
+    await requireAdmin();
 
     const { id } = await params;
     const blog = await BlogService.deleteBlog(id);

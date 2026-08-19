@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { PageService } from '@/services/page-service';
 import { updatePageSchema } from '@/types/schemas';
-import { requireAuth } from '@/utils/auth';
+import { requireAdmin } from '@/utils/auth';
 import { successResponse, errorResponse, handleValidationError, handleError } from '@/utils/api-response';
 
 interface RouteParams {
@@ -14,7 +14,7 @@ interface RouteParams {
  */
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    await requireAuth();
+    await requireAdmin();
 
     const { id } = await params;
     const page = await PageService.getPageById(id);
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
-    await requireAuth();
+    await requireAdmin();
 
     const { id } = await params;
     const body = await request.json();
@@ -49,8 +49,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     return successResponse(page);
   } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return errorResponse('Unauthorized', 401);
+    if (error instanceof Error) {
+      if (error.message === 'Unauthorized') {
+        return errorResponse('Unauthorized', 401);
+      }
+      if (error.message === 'Forbidden: Admin access required') {
+        return errorResponse('Forbidden: Admin access required', 403);
+      }
     }
     return handleValidationError(error);
   }
@@ -62,7 +67,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
  */
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    await requireAuth();
+    await requireAdmin();
 
     const { id } = await params;
     const page = await PageService.deletePage(id);

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import BlogService from '@/services/blog-service';
 import { CategoryService, TagService } from '@/services/taxonomy-service';
+import { requireAdmin } from '@/utils/auth';
 import BlogForm from '../../_components/BlogForm';
 
 export const dynamic = 'force-dynamic';
@@ -10,6 +11,7 @@ interface EditBlogPageProps {
 }
 
 export default async function EditBlogPage({ params }: EditBlogPageProps) {
+  await requireAdmin();
   const { id } = await params;
 
   const [blog, categories, tags] = await Promise.all([

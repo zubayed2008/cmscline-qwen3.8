@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { BlogService } from '@/services/blog-service';
 import { createBlogSchema } from '@/types/schemas';
-import { requireAuth } from '@/utils/auth';
+import { requireAdmin } from '@/utils/auth';
 import { successResponse, errorResponse, handleValidationError, handleError } from '@/utils/api-response';
 
 /**
@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
       return successResponse(blogs);
     }
 
-    // Admin endpoint: auth required
-    await requireAuth();
+    // Admin endpoint: Admin role required
+    await requireAdmin();
     const blogs = await BlogService.getAllBlogs();
     return successResponse(blogs);
   } catch (error) {
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    await requireAuth();
+    await requireAdmin();
 
     const body = await request.json();
     const validatedData = createBlogSchema.parse(body);
@@ -53,8 +53,13 @@ export async function POST(request: NextRequest) {
     const blog = await BlogService.createBlog(validatedData);
     return successResponse(blog, 201);
   } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return errorResponse('Unauthorized', 401);
+    if (error instanceof Error) {
+      if (error.message === 'Unauthorized') {
+        return errorResponse('Unauthorized', 401);
+      }
+      if (error.message === 'Forbidden: Admin access required') {
+        return errorResponse('Forbidden: Admin access required', 403);
+      }
     }
     return handleValidationError(error);
   }

@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import NavigationService from '@/services/navigation-service';
+import { requireAdmin } from '@/utils/auth';
 import NavigationMenuForm from '../../_components/NavigationMenuForm';
 
 export const dynamic = 'force-dynamic';
@@ -11,6 +12,7 @@ interface EditNavigationPageProps {
 export default async function EditNavigationMenuPage({
   params,
 }: EditNavigationPageProps) {
+  await requireAdmin();
   const { id } = await params;
   const menu = await NavigationService.getNavigationMenuById(id);
 

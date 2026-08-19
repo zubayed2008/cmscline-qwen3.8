@@ -1,9 +1,11 @@
 import { CategoryService, TagService } from '@/services/taxonomy-service';
+import { requireAdmin } from '@/utils/auth';
 import BlogForm from '../_components/BlogForm';
 
 export const dynamic = 'force-dynamic';
 
 export default async function NewBlogPage() {
+  await requireAdmin();
   const [categories, tags] = await Promise.all([
     CategoryService.getAllCategories(),
     TagService.getAllTags(),

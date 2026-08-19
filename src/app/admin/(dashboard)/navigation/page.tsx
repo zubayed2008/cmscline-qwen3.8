@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import NavigationService from '@/services/navigation-service';
+import { requireAdmin } from '@/utils/auth';
 import Button from '@/components/ui/Button';
 import NavigationTable from './_components/NavigationTable';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminNavigationPage() {
+  await requireAdmin();
   const menus = await NavigationService.getAllNavigationMenus();
 
   const serializedMenus = menus.map((menu) => ({

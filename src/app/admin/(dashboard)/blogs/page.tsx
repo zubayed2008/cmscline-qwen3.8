@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import BlogService from '@/services/blog-service';
+import { requireAdmin } from '@/utils/auth';
 import Button from '@/components/ui/Button';
 import BlogsTable from './_components/BlogsTable';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminBlogsPage() {
+  await requireAdmin();
   const blogs = await BlogService.getAllBlogs();
 
   const serializedBlogs = blogs.map((blog) => ({

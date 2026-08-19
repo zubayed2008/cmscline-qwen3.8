@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import PageService from '@/services/page-service';
+import { requireAdmin } from '@/utils/auth';
 import Button from '@/components/ui/Button';
 import PagesTable from './_components/PagesTable';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminPagesPage() {
+  await requireAdmin();
   const pages = await PageService.getAllPages();
 
   // Convert MongoDB documents to plain objects for client component

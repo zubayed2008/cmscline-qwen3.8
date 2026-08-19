@@ -4,6 +4,7 @@ import PageService from '@/services/page-service';
 import BlogService from '@/services/blog-service';
 import UserService from '@/services/user-service';
 import ContactService from '@/services/contact-service';
+import { requireAdmin } from '@/utils/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +38,7 @@ const statCards = [
 ] as const;
 
 export default async function AdminDashboardPage() {
+  await requireAdmin();
   const stats = await getDashboardStats();
 
   return (

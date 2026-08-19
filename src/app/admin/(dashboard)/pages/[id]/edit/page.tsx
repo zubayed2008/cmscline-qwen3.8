@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import PageService from '@/services/page-service';
+import { requireAdmin } from '@/utils/auth';
 import PageForm from '../../_components/PageForm';
 
 export const dynamic = 'force-dynamic';
@@ -9,6 +10,7 @@ interface EditPageProps {
 }
 
 export default async function EditPagePage({ params }: EditPageProps) {
+  await requireAdmin();
   const { id } = await params;
   const page = await PageService.getPageById(id);
 
