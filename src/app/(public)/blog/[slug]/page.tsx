@@ -1,0 +1,140 @@
+import { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { BlogService } from '@/services/blog-service';
+
+export const dynamic = 'force-dynamic';
+
+// Interfaces for populated fields
+interface PopulatedMedia {
+  _id: string;
+  url: string;
+  filename: string;
+}
+
+interface PopulatedCategory {
+  _id: string;
+  name: string;
+  slug: string;
+  isActive?: boolean;
+}
+
+interface PopulatedTag {
+  _id: string;
+  name: string;
+  slug: string;
+  isActive?: boolean;
+}
+
+interface BlogDetailPageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: BlogDetailPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const blog = await BlogService.getBlogBySlug(slug);
+
+  if (!blog || !blog.isActive) {
+    return { title: 'Post Not Found' };
+  }
+
+  const excerpt = blog.content.replace(/<[^>]*>/g, '').substring(0, 160).trim();
+
+  return {
+    title: blog.title,
+    description: excerpt,
+  };
+}
+
+/**
+ * Blog Detail Page - Displays a single blog post by slug.
+ * Shows featured image, title, content, category, tags, and publication date.
+ */
+export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
+  const { slug } = await params;
+  const blog = await BlogService.getBlogBySlug(slug);
+
+  // Return 404 if blog not found or not active
+  if (!blog || !blog.isActive) {
+    notFound();
+  }
+
+  const featuredImage = blog.featuredImage as unknown as PopulatedMedia | null;
+  const category = blog.category as unknown as PopulatedCategory | null;
+  const tags = (blog.tags as unknown as PopulatedTag[]) || [];
+
+  return (
+    <article className="py-16 bg-white">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back Link */}
+        <Link
+          href="/blog"
+          className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-8"
+        >
+          <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Blog
+        </Link>
+
+        {/* Article Header */}
+        <header className="mb-8">
+          {/* Category Badge */}
+          {category && category.isActive !== false && (
+            <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full mb-4">
+              {category.name}
+            </span>
+          )}
+
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">{blog.title}</h1>
+
+          {/* Publication Date */}
+          <time className="text-gray-500" dateTime={blog.createdAt.toISOString()}>
+            Published on{' '}
+            {blog.createdAt.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </time>
+        </header>
+
+        {/* Featured Image */}
+        {featuredImage?.url && (
+          <div className="mb-8 rounded-xl overflow-hidden">
+            <img
+              src={featuredImage.url}
+              alt={featuredImage.filename || blog.title}
+              className="w-full max-h-[500px] object-cover"
+            />
+          </div>
+        )}
+
+        {/* Article Content */}
+        <div
+          className="prose prose-lg max-w-none"
+          dangerouslySetInnerHTML={{ __html: blog.content }}
+        />
+
+        {/* Tags */}
+        {tags.length > 0 && (
+          <footer className="mt-12 pt-8 border-t border-gray-200">
+            <h2 className="text-sm font-medium text-gray-900 mb-3">Tags</h2>
+            <div className="flex flex-wrap gap-2">
+              {tags
+                .filter((tag) => tag.isActive !== false)
+                .map((tag) => (
+                  <span
+                    key={tag._id}
+                    className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full"
+                  >
+                    {tag.name}
+                  </span>
+                ))}
+            </div>
+          </footer>
+        )}
+      </div>
+    </article>
+  );
+}
