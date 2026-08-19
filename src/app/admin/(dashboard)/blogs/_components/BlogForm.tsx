@@ -65,9 +65,7 @@ export default function BlogForm({ initialData, categories, tags }: BlogFormProp
 
   const handleTagToggle = (tagId: string) => {
     setSelectedTags((prev) =>
-      prev.includes(tagId)
-        ? prev.filter((id) => id !== tagId)
-        : [...prev, tagId]
+      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
     );
   };
 
@@ -159,9 +157,7 @@ export default function BlogForm({ initialData, categories, tags }: BlogFormProp
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tags
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Tags</label>
             <div className="flex flex-wrap gap-2">
               {tags.map((tag) => (
                 <button
@@ -177,9 +173,7 @@ export default function BlogForm({ initialData, categories, tags }: BlogFormProp
                   {tag.name}
                 </button>
               ))}
-              {tags.length === 0 && (
-                <p className="text-sm text-gray-500">No tags available</p>
-              )}
+              {tags.length === 0 && <p className="text-sm text-gray-500">No tags available</p>}
             </div>
           </div>
 
@@ -196,11 +190,7 @@ export default function BlogForm({ initialData, categories, tags }: BlogFormProp
             <Button type="submit" disabled={loading}>
               {loading ? 'Saving...' : isEditing ? 'Update Blog' : 'Create Blog'}
             </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => router.push('/admin/blogs')}
-            >
+            <Button type="button" variant="secondary" onClick={() => router.push('/admin/blogs')}>
               Cancel
             </Button>
           </div>

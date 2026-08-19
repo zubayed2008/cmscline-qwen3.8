@@ -47,9 +47,7 @@ function LoginForm() {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <h1 className="text-2xl font-bold text-center text-gray-900">
-            Admin Login
-          </h1>
+          <h1 className="text-2xl font-bold text-center text-gray-900">Admin Login</h1>
           <p className="text-sm text-center text-gray-500 mt-1">
             Sign in to manage your CMS content
           </p>

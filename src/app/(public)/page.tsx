@@ -76,20 +76,14 @@ export default async function HomePage() {
 
       {/* Client Carousel */}
       {clientCarouselItems.length > 0 && (
-        <GenericCarousel
-          type="client"
-          title="Companies We Work With"
-          items={clientCarouselItems}
-        />
+        <GenericCarousel type="client" title="Companies We Work With" items={clientCarouselItems} />
       )}
 
       {/* Contact Section */}
       <ContactSection siteInfo={navMenu?.siteInfo} />
 
       {/* Map Location */}
-      {navMenu?.siteInfo?.address && (
-        <MapLocation address={navMenu.siteInfo.address} />
-      )}
+      {navMenu?.siteInfo?.address && <MapLocation address={navMenu.siteInfo.address} />}
     </div>
   );
 }

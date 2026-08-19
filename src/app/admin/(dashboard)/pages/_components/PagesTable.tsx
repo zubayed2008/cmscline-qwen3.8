@@ -31,9 +31,7 @@ export default function PagesTable({ initialPages }: PagesTableProps) {
       });
 
       if (response.ok) {
-        setPages((prev) =>
-          prev.map((page) => (page._id === id ? { ...page, isActive } : page))
-        );
+        setPages((prev) => prev.map((page) => (page._id === id ? { ...page, isActive } : page)));
       } else {
         alert('Failed to update page status');
       }

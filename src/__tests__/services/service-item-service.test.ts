@@ -148,9 +148,7 @@ describe('ServiceItemService', () => {
 
   describe('getActiveServiceItems', () => {
     it('should return only active service items', async () => {
-      const mockItems = [
-        { _id: '1', title: 'Active Service', isActive: true },
-      ];
+      const mockItems = [{ _id: '1', title: 'Active Service', isActive: true }];
 
       const mockSort = jest.fn().mockResolvedValue(mockItems);
       (ServiceItem.find as jest.Mock).mockReturnValue({ sort: mockSort });

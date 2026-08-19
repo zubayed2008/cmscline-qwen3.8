@@ -2,7 +2,12 @@ import { NextRequest } from 'next/server';
 import { ContactService } from '@/services/contact-service';
 import { createContactSubmissionSchema } from '@/types/schemas';
 import { verifyCaptcha } from '@/utils/captcha';
-import { successResponse, errorResponse, handleValidationError, handleError } from '@/utils/api-response';
+import {
+  successResponse,
+  errorResponse,
+  handleValidationError,
+  handleError,
+} from '@/utils/api-response';
 
 /**
  * POST /api/contact

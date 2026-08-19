@@ -33,7 +33,10 @@ export const CarouselService = {
   /**
    * Updates a carousel item by ID.
    */
-  async updateCarouselItem(id: string, input: UpdateCarouselItemInput): Promise<ICarouselItem | null> {
+  async updateCarouselItem(
+    id: string,
+    input: UpdateCarouselItemInput
+  ): Promise<ICarouselItem | null> {
     await dbConnect();
     return CarouselItem.findByIdAndUpdate(id, input, {
       new: true,

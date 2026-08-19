@@ -138,11 +138,7 @@ export default function PageForm({ initialData }: PageFormProps) {
             <Button type="submit" disabled={loading}>
               {loading ? 'Saving...' : isEditing ? 'Update Page' : 'Create Page'}
             </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => router.push('/admin/pages')}
-            >
+            <Button type="button" variant="secondary" onClick={() => router.push('/admin/pages')}>
               Cancel
             </Button>
           </div>

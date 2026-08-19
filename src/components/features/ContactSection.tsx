@@ -74,7 +74,14 @@ export default function ContactSection({ siteInfo }: ContactSectionProps) {
 
     return new Promise((resolve) => {
       const checkRecaptchaReady = () => {
-        const grecaptcha = (window as unknown as { grecaptcha?: { ready: (cb: () => void) => void; execute: (siteKey: string, options: { action: string }) => Promise<string> } }).grecaptcha;
+        const grecaptcha = (
+          window as unknown as {
+            grecaptcha?: {
+              ready: (cb: () => void) => void;
+              execute: (siteKey: string, options: { action: string }) => Promise<string>;
+            };
+          }
+        ).grecaptcha;
         if (grecaptcha) {
           grecaptcha.ready(async () => {
             try {
@@ -139,9 +146,7 @@ export default function ContactSection({ siteInfo }: ContactSectionProps) {
     }
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
@@ -156,7 +161,7 @@ export default function ContactSection({ siteInfo }: ContactSectionProps) {
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Contact Us</h2>
           <p className="mt-4 text-lg text-gray-600">
-            Have a question? We'd love to hear from you.
+            Have a question? We&apos;d love to hear from you.
           </p>
         </div>
 
@@ -170,9 +175,24 @@ export default function ContactSection({ siteInfo }: ContactSectionProps) {
                 {siteInfo?.address && (
                   <div className="flex items-start">
                     <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <svg
+                        className="w-5 h-5 text-blue-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
                       </svg>
                     </div>
                     <div className="ml-4">
@@ -185,8 +205,18 @@ export default function ContactSection({ siteInfo }: ContactSectionProps) {
                 {siteInfo?.phone && (
                   <div className="flex items-start">
                     <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      <svg
+                        className="w-5 h-5 text-blue-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                        />
                       </svg>
                     </div>
                     <div className="ml-4">
@@ -199,8 +229,18 @@ export default function ContactSection({ siteInfo }: ContactSectionProps) {
                 {siteInfo?.email && (
                   <div className="flex items-start">
                     <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      <svg
+                        className="w-5 h-5 text-blue-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
                       </svg>
                     </div>
                     <div className="ml-4">
@@ -241,9 +281,7 @@ export default function ContactSection({ siteInfo }: ContactSectionProps) {
                       placeholder="Your name"
                       disabled={isSubmitting}
                     />
-                    {errors.name && (
-                      <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-                    )}
+                    {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
                   </div>
 
                   {/* Email Field */}
@@ -263,9 +301,7 @@ export default function ContactSection({ siteInfo }: ContactSectionProps) {
                       placeholder="your@email.com"
                       disabled={isSubmitting}
                     />
-                    {errors.email && (
-                      <p className="mt-1 text-sm text-red-500">{errors.email}</p>
-                    )}
+                    {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
                   </div>
                 </div>
 
@@ -286,16 +322,14 @@ export default function ContactSection({ siteInfo }: ContactSectionProps) {
                     placeholder="How can we help you?"
                     disabled={isSubmitting}
                   />
-                  {errors.message && (
-                    <p className="mt-1 text-sm text-red-500">{errors.message}</p>
-                  )}
+                  {errors.message && <p className="mt-1 text-sm text-red-500">{errors.message}</p>}
                 </div>
 
                 {/* Status Messages */}
                 {submitStatus === 'success' && (
                   <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                     <p className="text-green-700">
-                      Thank you for your message! We'll get back to you soon.
+                      Thank you for your message! We&apos;ll get back to you soon.
                     </p>
                   </div>
                 )}
@@ -315,9 +349,24 @@ export default function ContactSection({ siteInfo }: ContactSectionProps) {
                 >
                   {isSubmitting ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
                       </svg>
                       Sending...
                     </>
@@ -328,8 +377,8 @@ export default function ContactSection({ siteInfo }: ContactSectionProps) {
 
                 {/* reCAPTCHA Notice */}
                 <p className="mt-4 text-xs text-gray-500">
-                  This form is protected by reCAPTCHA. By submitting, you agree to the
-                  privacy policy and terms of service.
+                  This form is protected by reCAPTCHA. By submitting, you agree to the privacy
+                  policy and terms of service.
                 </p>
               </form>
             </div>

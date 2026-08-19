@@ -31,10 +31,34 @@ async function getDashboardStats() {
 }
 
 const statCards = [
-  { key: 'pages', label: 'Pages', href: '/admin/pages', icon: '📄', color: 'bg-blue-50 text-blue-600' },
-  { key: 'blogs', label: 'Blogs', href: '/admin/blogs', icon: '📝', color: 'bg-green-50 text-green-600' },
-  { key: 'users', label: 'Users', href: '/admin/users', icon: '👥', color: 'bg-purple-50 text-purple-600' },
-  { key: 'submissions', label: 'Contact Messages', href: '/admin/contact-submissions', icon: '📬', color: 'bg-orange-50 text-orange-600' },
+  {
+    key: 'pages',
+    label: 'Pages',
+    href: '/admin/pages',
+    icon: '📄',
+    color: 'bg-blue-50 text-blue-600',
+  },
+  {
+    key: 'blogs',
+    label: 'Blogs',
+    href: '/admin/blogs',
+    icon: '📝',
+    color: 'bg-green-50 text-green-600',
+  },
+  {
+    key: 'users',
+    label: 'Users',
+    href: '/admin/users',
+    icon: '👥',
+    color: 'bg-purple-50 text-purple-600',
+  },
+  {
+    key: 'submissions',
+    label: 'Contact Messages',
+    href: '/admin/contact-submissions',
+    icon: '📬',
+    color: 'bg-orange-50 text-orange-600',
+  },
 ] as const;
 
 export default async function AdminDashboardPage() {
@@ -56,9 +80,7 @@ export default async function AdminDashboardPage() {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm text-gray-500">{card.label}</p>
-                    <p className="text-2xl font-semibold text-gray-900">
-                      {stats[card.key]}
-                    </p>
+                    <p className="text-2xl font-semibold text-gray-900">{stats[card.key]}</p>
                   </div>
                 </div>
               </CardBody>
@@ -70,9 +92,7 @@ export default async function AdminDashboardPage() {
       {stats.unreadSubmissions > 0 && (
         <Card className="mt-6">
           <CardHeader>
-            <h2 className="text-lg font-semibold text-gray-900">
-              Unread Messages
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900">Unread Messages</h2>
           </CardHeader>
           <CardBody>
             <p className="text-gray-600">

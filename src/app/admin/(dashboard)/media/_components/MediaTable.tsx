@@ -72,11 +72,7 @@ export default function MediaTable({ initialMedia }: MediaTableProps) {
       header: 'Preview',
       render: (item) =>
         item.mimeType.startsWith('image/') ? (
-          <img
-            src={item.url}
-            alt={item.filename}
-            className="w-12 h-12 object-cover rounded"
-          />
+          <img src={item.url} alt={item.filename} className="w-12 h-12 object-cover rounded" />
         ) : (
           <span className="text-gray-400">📄</span>
         ),

@@ -33,7 +33,10 @@ export default function PublicHeader({ links, siteTitle = 'CMS' }: PublicHeaderP
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo / Site Title */}
-          <Link href="/" className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
+          <Link
+            href="/"
+            className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors"
+          >
             {siteTitle}
           </Link>
 
@@ -44,9 +47,7 @@ export default function PublicHeader({ links, siteTitle = 'CMS' }: PublicHeaderP
                 key={link.url}
                 href={link.url}
                 className={`text-sm font-medium transition-colors ${
-                  isActive(link.url)
-                    ? 'text-blue-600'
-                    : 'text-gray-700 hover:text-blue-600'
+                  isActive(link.url) ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
                 }`}
               >
                 {link.label}
@@ -63,9 +64,19 @@ export default function PublicHeader({ links, siteTitle = 'CMS' }: PublicHeaderP
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {isMobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               )}
             </svg>
           </button>

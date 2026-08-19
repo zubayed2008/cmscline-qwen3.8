@@ -6,11 +6,7 @@ import PublicFooter from '@/components/features/public/PublicFooter';
  * Public layout - wraps all public-facing pages with header and footer.
  * Fetches the default navigation menu for header links and site info.
  */
-export default async function PublicLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   const navMenu = await NavigationService.getDefaultNavigationMenu();
 
   // Map INavLink[] to NavLink[] ensuring required fields

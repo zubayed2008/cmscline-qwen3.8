@@ -1,5 +1,9 @@
 import dbConnect from '@/utils/db-connect';
-import NavigationMenu, { INavigationMenu, INavLink, ISiteInfo } from '@/models/navigation-menu-model';
+import NavigationMenu, {
+  INavigationMenu,
+  INavLink,
+  ISiteInfo,
+} from '@/models/navigation-menu-model';
 
 export interface CreateNavigationMenuInput {
   title: string;
@@ -46,10 +50,7 @@ export const NavigationService = {
     await dbConnect();
 
     if (input.isDefault === true) {
-      await NavigationMenu.updateMany(
-        { _id: { $ne: id }, isDefault: true },
-        { isDefault: false }
-      );
+      await NavigationMenu.updateMany({ _id: { $ne: id }, isDefault: true }, { isDefault: false });
     }
 
     const menu = await NavigationMenu.findByIdAndUpdate(id, input, {

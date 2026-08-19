@@ -2,7 +2,12 @@ import { NextRequest } from 'next/server';
 import { UserService } from '@/services/user-service';
 import { createUserSchema } from '@/types/schemas';
 import { requireAdmin } from '@/utils/auth';
-import { successResponse, errorResponse, handleValidationError, handleError } from '@/utils/api-response';
+import {
+  successResponse,
+  errorResponse,
+  handleValidationError,
+  handleError,
+} from '@/utils/api-response';
 
 /**
  * GET /api/users

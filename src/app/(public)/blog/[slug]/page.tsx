@@ -38,7 +38,10 @@ export async function generateMetadata({ params }: BlogDetailPageProps): Promise
     return { title: 'Post Not Found' };
   }
 
-  const excerpt = blog.content.replace(/<[^>]*>/g, '').substring(0, 160).trim();
+  const excerpt = blog.content
+    .replace(/<[^>]*>/g, '')
+    .substring(0, 160)
+    .trim();
 
   return {
     title: blog.title,
@@ -72,7 +75,12 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-8"
         >
           <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           Back to Blog
         </Link>

@@ -26,18 +26,14 @@ export default function AdminSidebar() {
         <ul className="space-y-1">
           {navItems.map((item) => {
             const isActive =
-              item.href === '/admin'
-                ? pathname === '/admin'
-                : pathname.startsWith(item.href);
+              item.href === '/admin' ? pathname === '/admin' : pathname.startsWith(item.href);
 
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
                   className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
+                    isActive ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
                   <span className="mr-3">{item.icon}</span>

@@ -17,7 +17,11 @@ export const createPageSchema = z.object({
 });
 
 export const updatePageSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less').optional(),
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(200, 'Title must be 200 characters or less')
+    .optional(),
   slug: z
     .string()
     .min(1, 'Slug is required')
@@ -53,7 +57,11 @@ export const createBlogSchema = z.object({
 });
 
 export const updateBlogSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less').optional(),
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(200, 'Title must be 200 characters or less')
+    .optional(),
   slug: z
     .string()
     .min(1, 'Slug is required')
@@ -85,7 +93,11 @@ export const createTaxonomySchema = z.object({
 });
 
 export const updateTaxonomySchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be 100 characters or less').optional(),
+  name: z
+    .string()
+    .min(1, 'Name is required')
+    .max(100, 'Name must be 100 characters or less')
+    .optional(),
   slug: z
     .string()
     .min(1, 'Slug is required')
@@ -111,7 +123,11 @@ export const createUserSchema = z.object({
 });
 
 export const updateUserSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name must be 100 characters or less').optional(),
+  name: z
+    .string()
+    .min(1, 'Name is required')
+    .max(100, 'Name must be 100 characters or less')
+    .optional(),
   email: z.string().email('Invalid email address').optional(),
   password: z.string().min(8, 'Password must be at least 8 characters').optional(),
   role: z.enum(['Admin', 'Editor']).optional(),
@@ -145,7 +161,11 @@ export const createNavigationMenuSchema = z.object({
 });
 
 export const updateNavigationMenuSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less').optional(),
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(200, 'Title must be 200 characters or less')
+    .optional(),
   isDefault: z.boolean().optional(),
   links: z.array(navLinkSchema).optional(),
   siteInfo: siteInfoSchema.optional(),
@@ -160,17 +180,35 @@ export type UpdateNavigationMenuSchema = z.infer<typeof updateNavigationMenuSche
 // ============================================================================
 
 export const createMediaSchema = z.object({
-  filename: z.string().min(1, 'Filename is required').max(255, 'Filename must be 255 characters or less'),
+  filename: z
+    .string()
+    .min(1, 'Filename is required')
+    .max(255, 'Filename must be 255 characters or less'),
   url: z.string().min(1, 'URL is required').max(1000, 'URL must be 1000 characters or less'),
-  mimeType: z.string().min(1, 'MIME type is required').max(100, 'MIME type must be 100 characters or less'),
+  mimeType: z
+    .string()
+    .min(1, 'MIME type is required')
+    .max(100, 'MIME type must be 100 characters or less'),
   size: z.number().positive('Size must be positive'),
   isActive: z.boolean().optional(),
 });
 
 export const updateMediaSchema = z.object({
-  filename: z.string().min(1, 'Filename is required').max(255, 'Filename must be 255 characters or less').optional(),
-  url: z.string().min(1, 'URL is required').max(1000, 'URL must be 1000 characters or less').optional(),
-  mimeType: z.string().min(1, 'MIME type is required').max(100, 'MIME type must be 100 characters or less').optional(),
+  filename: z
+    .string()
+    .min(1, 'Filename is required')
+    .max(255, 'Filename must be 255 characters or less')
+    .optional(),
+  url: z
+    .string()
+    .min(1, 'URL is required')
+    .max(1000, 'URL must be 1000 characters or less')
+    .optional(),
+  mimeType: z
+    .string()
+    .min(1, 'MIME type is required')
+    .max(100, 'MIME type must be 100 characters or less')
+    .optional(),
   size: z.number().positive('Size must be positive').optional(),
   isActive: z.boolean().optional(),
 });
@@ -186,7 +224,10 @@ const carouselTypeEnum = z.enum(['hero', 'client', 'employee', 'recommendation']
 
 export const createCarouselItemSchema = z.object({
   title: z.string().max(200, 'Title must be 200 characters or less').optional(),
-  imageOrIconUrl: z.string().min(1, 'Image or icon URL is required').max(1000, 'URL must be 1000 characters or less'),
+  imageOrIconUrl: z
+    .string()
+    .min(1, 'Image or icon URL is required')
+    .max(1000, 'URL must be 1000 characters or less'),
   type: carouselTypeEnum,
   order: z.number().int().min(0).optional(),
   isActive: z.boolean().optional(),
@@ -194,7 +235,11 @@ export const createCarouselItemSchema = z.object({
 
 export const updateCarouselItemSchema = z.object({
   title: z.string().max(200, 'Title must be 200 characters or less').optional(),
-  imageOrIconUrl: z.string().min(1, 'Image or icon URL is required').max(1000, 'URL must be 1000 characters or less').optional(),
+  imageOrIconUrl: z
+    .string()
+    .min(1, 'Image or icon URL is required')
+    .max(1000, 'URL must be 1000 characters or less')
+    .optional(),
   type: carouselTypeEnum.optional(),
   order: z.number().int().min(0).optional(),
   isActive: z.boolean().optional(),
@@ -220,14 +265,25 @@ export type ReorderCarouselItemsSchema = z.infer<typeof reorderCarouselItemsSche
 
 export const createServiceItemSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
-  description: z.string().min(1, 'Description is required').max(2000, 'Description must be 2000 characters or less'),
+  description: z
+    .string()
+    .min(1, 'Description is required')
+    .max(2000, 'Description must be 2000 characters or less'),
   icon: z.string().max(1000, 'Icon must be 1000 characters or less').optional(),
   isActive: z.boolean().optional(),
 });
 
 export const updateServiceItemSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less').optional(),
-  description: z.string().min(1, 'Description is required').max(2000, 'Description must be 2000 characters or less').optional(),
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(200, 'Title must be 200 characters or less')
+    .optional(),
+  description: z
+    .string()
+    .min(1, 'Description is required')
+    .max(2000, 'Description must be 2000 characters or less')
+    .optional(),
   icon: z.string().max(1000, 'Icon must be 1000 characters or less').optional(),
   isActive: z.boolean().optional(),
 });
@@ -242,7 +298,10 @@ export type UpdateServiceItemSchema = z.infer<typeof updateServiceItemSchema>;
 export const createContactSubmissionSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name must be 100 characters or less'),
   email: z.string().email('Invalid email address'),
-  message: z.string().min(10, 'Message must be at least 10 characters').max(5000, 'Message must be 5000 characters or less'),
+  message: z
+    .string()
+    .min(10, 'Message must be at least 10 characters')
+    .max(5000, 'Message must be 5000 characters or less'),
   captchaToken: z.string().min(1, 'CAPTCHA token is required'),
 });
 

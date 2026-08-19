@@ -26,11 +26,11 @@ export default async function EditBlogPage({ params }: EditBlogPageProps) {
 
   // Extract IDs from populated relations
   // After populate(), these may be objects with _id or just ObjectIds
-  const categoryId = blog.category ? String((blog.category as { _id?: unknown })._id ?? blog.category) : '';
+  const categoryId = blog.category
+    ? String((blog.category as { _id?: unknown })._id ?? blog.category)
+    : '';
 
-  const tagIds = (blog.tags || []).map((tag) =>
-    String((tag as { _id?: unknown })._id ?? tag)
-  );
+  const tagIds = (blog.tags || []).map((tag) => String((tag as { _id?: unknown })._id ?? tag));
 
   const featuredImageId = blog.featuredImage
     ? String((blog.featuredImage as { _id?: unknown })._id ?? blog.featuredImage)

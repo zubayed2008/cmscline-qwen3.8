@@ -2,7 +2,12 @@ import { NextRequest } from 'next/server';
 import { PageService } from '@/services/page-service';
 import { updatePageSchema } from '@/types/schemas';
 import { requireAdmin } from '@/utils/auth';
-import { successResponse, errorResponse, handleValidationError, handleError } from '@/utils/api-response';
+import {
+  successResponse,
+  errorResponse,
+  handleValidationError,
+  handleError,
+} from '@/utils/api-response';
 
 interface RouteParams {
   params: Promise<{ id: string }>;

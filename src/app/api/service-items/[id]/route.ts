@@ -2,7 +2,12 @@ import { NextRequest } from 'next/server';
 import { ServiceItemService } from '@/services/service-item-service';
 import { updateServiceItemSchema } from '@/types/schemas';
 import { requireAuth } from '@/utils/auth';
-import { successResponse, errorResponse, handleValidationError, handleError } from '@/utils/api-response';
+import {
+  successResponse,
+  errorResponse,
+  handleValidationError,
+  handleError,
+} from '@/utils/api-response';
 
 interface RouteParams {
   params: Promise<{ id: string }>;

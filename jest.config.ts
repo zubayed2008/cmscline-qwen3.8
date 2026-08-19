@@ -8,10 +8,7 @@ const config: Config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  collectCoverageFrom: [
-    'src/services/**/*.ts',
-    '!src/services/index.ts',
-  ],
+  collectCoverageFrom: ['src/services/**/*.ts', '!src/services/index.ts'],
   coverageDirectory: 'coverage',
   verbose: true,
 };

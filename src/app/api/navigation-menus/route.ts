@@ -2,7 +2,12 @@ import { NextRequest } from 'next/server';
 import { NavigationService } from '@/services/navigation-service';
 import { createNavigationMenuSchema } from '@/types/schemas';
 import { requireAdmin } from '@/utils/auth';
-import { successResponse, errorResponse, handleValidationError, handleError } from '@/utils/api-response';
+import {
+  successResponse,
+  errorResponse,
+  handleValidationError,
+  handleError,
+} from '@/utils/api-response';
 
 /**
  * GET /api/navigation-menus

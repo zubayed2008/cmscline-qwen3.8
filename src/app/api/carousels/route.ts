@@ -2,7 +2,12 @@ import { NextRequest } from 'next/server';
 import { CarouselService } from '@/services/carousel-service';
 import { createCarouselItemSchema, reorderCarouselItemsSchema } from '@/types/schemas';
 import { requireAuth } from '@/utils/auth';
-import { successResponse, errorResponse, handleValidationError, handleError } from '@/utils/api-response';
+import {
+  successResponse,
+  errorResponse,
+  handleValidationError,
+  handleError,
+} from '@/utils/api-response';
 import { CarouselType } from '@/models/carousel-item-model';
 
 /**

@@ -2,7 +2,12 @@ import { NextRequest } from 'next/server';
 import { MediaService } from '@/services/media-service';
 import { updateMediaSchema } from '@/types/schemas';
 import { requireAuth } from '@/utils/auth';
-import { successResponse, errorResponse, handleValidationError, handleError } from '@/utils/api-response';
+import {
+  successResponse,
+  errorResponse,
+  handleValidationError,
+  handleError,
+} from '@/utils/api-response';
 
 interface RouteParams {
   params: Promise<{ id: string }>;

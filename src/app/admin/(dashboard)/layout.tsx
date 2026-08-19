@@ -8,11 +8,7 @@ export const metadata = {
   description: 'CMS Administration Panel',
 };
 
-export default async function AdminDashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
 
   if (!session) {

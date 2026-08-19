@@ -35,9 +35,7 @@ export default function ContactSubmissionsTable({
 
       if (response.ok) {
         setSubmissions((prev) =>
-          prev.map((submission) =>
-            submission._id === id ? { ...submission, isRead } : submission
-          )
+          prev.map((submission) => (submission._id === id ? { ...submission, isRead } : submission))
         );
       } else {
         alert('Failed to update submission status');
@@ -70,9 +68,7 @@ export default function ContactSubmissionsTable({
     {
       key: 'message',
       header: 'Message',
-      render: (submission) => (
-        <span className="line-clamp-2 max-w-md">{submission.message}</span>
-      ),
+      render: (submission) => <span className="line-clamp-2 max-w-md">{submission.message}</span>,
     },
     {
       key: 'isRead',

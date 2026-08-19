@@ -29,9 +29,7 @@ export default function BlogsTable({ initialBlogs }: BlogsTableProps) {
       });
 
       if (response.ok) {
-        setBlogs((prev) =>
-          prev.map((blog) => (blog._id === id ? { ...blog, isActive } : blog))
-        );
+        setBlogs((prev) => prev.map((blog) => (blog._id === id ? { ...blog, isActive } : blog)));
       } else {
         alert('Failed to update blog status');
       }

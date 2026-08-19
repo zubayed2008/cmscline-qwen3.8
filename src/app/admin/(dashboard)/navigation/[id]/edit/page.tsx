@@ -9,9 +9,7 @@ interface EditNavigationPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function EditNavigationMenuPage({
-  params,
-}: EditNavigationPageProps) {
+export default async function EditNavigationMenuPage({ params }: EditNavigationPageProps) {
   await requireAdmin();
   const { id } = await params;
   const menu = await NavigationService.getNavigationMenuById(id);
@@ -38,9 +36,7 @@ export default async function EditNavigationMenuPage({
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">
-        Edit Navigation Menu
-      </h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Navigation Menu</h1>
       <NavigationMenuForm initialData={serializedMenu} />
     </div>
   );

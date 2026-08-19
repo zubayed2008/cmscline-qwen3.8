@@ -67,7 +67,9 @@ export default function DataTable<T extends { _id: string; isActive?: boolean }>
               {data.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={columns.length + (onToggleActive ? 1 : 0) + (onEdit || onDelete ? 1 : 0)}
+                    colSpan={
+                      columns.length + (onToggleActive ? 1 : 0) + (onEdit || onDelete ? 1 : 0)
+                    }
                     className="px-6 py-8 text-center text-gray-500"
                   >
                     {emptyMessage}
@@ -77,7 +79,10 @@ export default function DataTable<T extends { _id: string; isActive?: boolean }>
                 data.map((item) => (
                   <tr key={item._id} className="hover:bg-gray-50">
                     {columns.map((column) => (
-                      <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td
+                        key={column.key}
+                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      >
                         {column.render
                           ? column.render(item)
                           : String((item as Record<string, unknown>)[column.key] ?? '')}

@@ -30,9 +30,7 @@ export default function NavigationTable({ initialMenus }: NavigationTableProps) 
       });
 
       if (response.ok) {
-        setMenus((prev) =>
-          prev.map((menu) => (menu._id === id ? { ...menu, isActive } : menu))
-        );
+        setMenus((prev) => prev.map((menu) => (menu._id === id ? { ...menu, isActive } : menu)));
       } else {
         alert('Failed to update menu status');
       }

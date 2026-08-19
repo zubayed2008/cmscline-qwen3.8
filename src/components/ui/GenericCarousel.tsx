@@ -94,7 +94,12 @@ export default function GenericCarousel({
               aria-label="Previous slide"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
             </button>
             <button
@@ -103,7 +108,12 @@ export default function GenericCarousel({
               aria-label="Next slide"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </button>
           </>
@@ -180,9 +190,7 @@ export default function GenericCarousel({
     <section className="py-12" aria-label={title || 'Carousel'}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {title && (
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-8">
-            {title}
-          </h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-8">{title}</h2>
         )}
         <div
           className="relative overflow-hidden"
@@ -220,7 +228,12 @@ export default function GenericCarousel({
                 aria-label="Previous item"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
               <button
@@ -229,7 +242,12 @@ export default function GenericCarousel({
                 aria-label="Next item"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
             </>

@@ -78,9 +78,7 @@ export default function ServiceItemsTable({ initialServiceItems }: ServiceItemsT
     {
       key: 'description',
       header: 'Description',
-      render: (item) => (
-        <span className="line-clamp-2 max-w-xs">{item.description}</span>
-      ),
+      render: (item) => <span className="line-clamp-2 max-w-xs">{item.description}</span>,
     },
     {
       key: 'createdAt',

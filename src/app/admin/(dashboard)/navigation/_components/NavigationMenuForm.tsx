@@ -36,23 +36,15 @@ export default function NavigationMenuForm({ initialData }: NavigationMenuFormPr
   const [title, setTitle] = useState(initialData?.title ?? '');
   const [isDefault, setIsDefault] = useState(initialData?.isDefault ?? false);
   const [isActive, setIsActive] = useState(initialData?.isActive ?? true);
-  const [links, setLinks] = useState<NavLinkItem[]>(
-    initialData?.links ?? [{ label: '', url: '' }]
-  );
+  const [links, setLinks] = useState<NavLinkItem[]>(initialData?.links ?? [{ label: '', url: '' }]);
   const [siteInfo, setSiteInfo] = useState<SiteInfoData>(
     initialData?.siteInfo ?? { address: '', phone: '', email: '' }
   );
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLinkChange = (
-    index: number,
-    field: keyof NavLinkItem,
-    value: string
-  ) => {
-    setLinks((prev) =>
-      prev.map((link, i) => (i === index ? { ...link, [field]: value } : link))
-    );
+  const handleLinkChange = (index: number, field: keyof NavLinkItem, value: string) => {
+    setLinks((prev) => prev.map((link, i) => (i === index ? { ...link, [field]: value } : link)));
   };
 
   const addLink = () => {
@@ -73,9 +65,7 @@ export default function NavigationMenuForm({ initialData }: NavigationMenuFormPr
     setLoading(true);
 
     try {
-      const url = isEditing
-        ? `/api/navigation-menus/${initialData._id}`
-        : '/api/navigation-menus';
+      const url = isEditing ? `/api/navigation-menus/${initialData._id}` : '/api/navigation-menus';
       const method = isEditing ? 'PUT' : 'POST';
 
       // Filter out empty links
@@ -133,20 +123,14 @@ export default function NavigationMenuForm({ initialData }: NavigationMenuFormPr
           />
 
           <div className="flex items-center gap-8">
-            <Toggle
-              label="Default Menu"
-              checked={isDefault}
-              onChange={setIsDefault}
-            />
+            <Toggle label="Default Menu" checked={isDefault} onChange={setIsDefault} />
             <Toggle label="Active" checked={isActive} onChange={setIsActive} />
           </div>
 
           {/* Links Builder */}
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Navigation Links
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Navigation Links</label>
               <Button type="button" variant="secondary" size="sm" onClick={addLink}>
                 + Add Link
               </Button>
@@ -157,18 +141,14 @@ export default function NavigationMenuForm({ initialData }: NavigationMenuFormPr
                   <div className="flex-1">
                     <Input
                       value={link.label}
-                      onChange={(e) =>
-                        handleLinkChange(index, 'label', e.target.value)
-                      }
+                      onChange={(e) => handleLinkChange(index, 'label', e.target.value)}
                       placeholder="Link Label"
                     />
                   </div>
                   <div className="flex-1">
                     <Input
                       value={link.url}
-                      onChange={(e) =>
-                        handleLinkChange(index, 'url', e.target.value)
-                      }
+                      onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
                       placeholder="/url or https://..."
                     />
                   </div>
@@ -188,9 +168,7 @@ export default function NavigationMenuForm({ initialData }: NavigationMenuFormPr
 
           {/* Site Info */}
           <div className="border-t pt-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-4">
-              Site Information
-            </h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-4">Site Information</h3>
             <div className="space-y-4">
               <Input
                 label="Address"

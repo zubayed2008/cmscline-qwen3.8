@@ -112,15 +112,16 @@ export default async function BlogPage() {
 
                     {/* Title */}
                     <h2 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
-                      <Link href={`/blog/${blog.slug}`} className="hover:text-blue-600 transition-colors">
+                      <Link
+                        href={`/blog/${blog.slug}`}
+                        className="hover:text-blue-600 transition-colors"
+                      >
                         {blog.title}
                       </Link>
                     </h2>
 
                     {/* Excerpt */}
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                      {excerpt}...
-                    </p>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">{excerpt}...</p>
 
                     {/* Meta Info */}
                     <div className="flex items-center justify-between text-sm text-gray-500">
