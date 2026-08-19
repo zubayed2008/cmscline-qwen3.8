@@ -28,7 +28,7 @@ This document outlines the sequential phases for building the Full-Stack Next.js
 ## Phase 3: API Controllers
 **Goal:** Expose the Service Layer to the frontend via Next.js Route Handlers.
 
-*   [ ] **Step 3.1:** Create standard CRUD API routes for Pages (`/api/pages`), Blogs (`/api/blogs`), etc.
+*   [ ] **Step 3.1:** Create standard CRUD API routes for Pages (`/api/pages`), Blogs (`/api/blogs`) and remaining items in service folder etc.
 *   [ ] **Step 3.2:** Ensure all `POST` and `PUT` routes use Zod schemas to validate incoming payloads before passing them to the services.
 *   [ ] **Step 3.3:** Create `POST /api/contact`. Integrate server-side CAPTCHA verification before saving to the database.
 
