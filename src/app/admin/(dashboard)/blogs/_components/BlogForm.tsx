@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Input from '@/components/ui/Input';
-import Textarea from '@/components/ui/Textarea';
 import Select from '@/components/ui/Select';
+import RichTextEditor from '@/components/editor/RichTextEditor';
 import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
 import Card, { CardBody, CardHeader } from '@/components/ui/Card';
@@ -139,14 +139,16 @@ export default function BlogForm({ initialData, categories, tags }: BlogFormProp
             required
           />
 
-          <Textarea
-            label="Content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Enter blog content (HTML or Markdown)"
-            rows={12}
-            required
-          />
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              Content <span className="text-red-500">*</span>
+            </label>
+            <RichTextEditor
+              content={content}
+              onChange={setContent}
+              placeholder="Write your blog content here..."
+            />
+          </div>
 
           <Select
             label="Category"

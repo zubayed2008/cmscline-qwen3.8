@@ -16,10 +16,17 @@
     "seed": "ts-node --project tsconfig.seed.json scripts/seed.ts"
   },
   "dependencies": {
+    "@tiptap/extension-image": "^3.30.2",
+    "@tiptap/extension-link": "^3.30.2",
+    "@tiptap/extension-placeholder": "^3.30.2",
+    "@tiptap/pm": "^3.30.2",
+    "@tiptap/react": "^3.30.2",
+    "@tiptap/starter-kit": "^3.30.2",
     "bcryptjs": "^3.0.3",
     "mongoose": "^9.9.3",
     "next": "16.3.1",
     "next-auth": "^4.24.15",
+    "node-html-parser": "^9.0.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "zod": "^4.4.3"

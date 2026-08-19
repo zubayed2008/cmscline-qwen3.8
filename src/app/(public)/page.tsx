@@ -6,6 +6,7 @@ import GenericCarousel from '@/components/ui/GenericCarousel';
 import ServiceGrid from '@/components/ui/ServiceGrid';
 import ContactSection from '@/components/features/ContactSection';
 import MapLocation from '@/components/ui/MapLocation';
+import ContentRenderer from '@/components/features/content/ContentRenderer';
 
 export const dynamic = 'force-dynamic';
 
@@ -63,10 +64,7 @@ export default async function HomePage() {
       {defaultPage?.content && (
         <section className="py-16 bg-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div
-              className="prose prose-lg max-w-none"
-              dangerouslySetInnerHTML={{ __html: defaultPage.content }}
-            />
+            <ContentRenderer content={defaultPage.content} />
           </div>
         </section>
       )}

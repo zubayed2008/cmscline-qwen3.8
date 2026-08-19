@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PageService } from '@/services/page-service';
+import ContentRenderer from '@/components/features/content/ContentRenderer';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,10 +46,7 @@ export default async function DynamicPage({ params }: DynamicPageProps) {
         </header>
 
         {/* Page Content */}
-        <div
-          className="prose prose-lg max-w-none"
-          dangerouslySetInnerHTML={{ __html: page.content }}
-        />
+        <ContentRenderer content={page.content} />
       </div>
     </article>
   );

@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BlogService } from '@/services/blog-service';
+import ContentRenderer from '@/components/features/content/ContentRenderer';
 
 export const dynamic = 'force-dynamic';
 
@@ -119,10 +120,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
         )}
 
         {/* Article Content */}
-        <div
-          className="prose prose-lg max-w-none"
-          dangerouslySetInnerHTML={{ __html: blog.content }}
-        />
+        <ContentRenderer content={blog.content} />
 
         {/* Tags */}
         {tags.length > 0 && (
