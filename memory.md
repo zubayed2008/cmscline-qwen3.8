@@ -15,6 +15,7 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 **Phase 8: TipTap Rich Text Editor - COMPLETED**
 **Phase 9: Media Upload with Cloudinary - COMPLETED**
 **Phase 10: SEO & Discovery - COMPLETED**
+**Phase 14: User Management - COMPLETED**
 
 ## Tech Stack
 - **Framework:** Next.js 16.3.1 (App Router, Turbopack)
@@ -28,6 +29,7 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 - **Media Storage:** Cloudinary 2.10.1
 - **Icons:** lucide-react 1.33.0
 - **Analytics:** Umami (self-hosted)
+- **Email:** nodemailer 6.9.7
 
 ## Directory Structure
 ```
@@ -50,6 +52,24 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 ```
 
 ## Key Features Implemented
+
+### Phase 14: User Management
+- `src/utils/tokens.ts` - Token generation utility (crypto-based, hashed storage)
+- `src/utils/email.ts` - Email sending utility (nodemailer, SMTP)
+- `src/app/api/auth/verify-email/route.ts` - Email verification endpoint
+- `src/app/api/auth/forgot-password/route.ts` - Password reset request endpoint
+- `src/app/api/auth/reset-password/route.ts` - Password reset endpoint
+- `src/app/api/auth/profile/route.ts` - Profile GET/PUT endpoints
+- `src/app/(public)/verify-email/page.tsx` - Email verification page
+- `src/app/(public)/forgot-password/page.tsx` - Forgot password page
+- `src/app/(public)/reset-password/page.tsx` - Reset password page
+- `src/app/admin/(dashboard)/profile/page.tsx` - Admin profile page
+- `src/components/features/admin/ProfileForm.tsx` - Profile form component
+- Enhanced user model with emailVerified, tokens, lastLoginAt, profileImage
+- User service with email verification, password reset, profile update methods
+- Last login tracking in NextAuth
+- Profile link in admin sidebar
+- Forgot password link on login page
 
 ### Phase 10: SEO & Discovery
 - `src/utils/seo.ts` - SEO utility functions (generateExcerpt, generateCanonicalUrl, generateOgImageUrl, formatSeoDate, generatePageTitle, sanitizeSlug, generateBlogStructuredData, generatePageStructuredData)
@@ -99,16 +119,26 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 - `CLOUDINARY_API_SECRET` - Cloudinary API secret
 - `CLOUDINARY_FOLDER` - Default upload folder
 - `IMAGE_OPTIMIZATION_QUALITY` - Image quality
+- `SMTP_HOST` - SMTP server hostname
+- `SMTP_PORT` - SMTP server port
+- `SMTP_USER` - SMTP authentication username
+- `SMTP_PASSWORD` - SMTP authentication password
+- `EMAIL_FROM` - From address for outgoing emails
 
 ## Business Rules Implemented
 1. **Single Default Rule:** ✅ Implemented in PageService and NavigationService
 2. **Toggle State:** ✅ All services have `getActive*` methods that filter by `isActive: true`
 3. **Auth Protection:** ✅ Admin routes and API endpoints protected
+4. **Email Verification:** ✅ New users require email verification
+5. **Password Reset:** ✅ Users can reset passwords via email link
+6. **Profile Security:** ✅ Current password required for email/password changes
 
 ## Next Steps
 - Phase 5.5: Playwright E2E testing (not yet done)
 - Production deployment preparation
 - Additional SEO features (dynamic OG images, breadcrumbs, FAQ schema)
+- Rate limiting for auth endpoints (Phase 13.1)
+- Audit logging for auth events (Phase 13.2)
 
 ## Important Notes
 - All models use `{ timestamps: true }` for createdAt/updatedAt
@@ -117,3 +147,5 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 - Test command: `npm test`
 - Coverage command: `npm run test:coverage`
 - Seed command: `npm run seed`
+- Tokens are hashed (SHA-256) before database storage
+- Forgot-password endpoint prevents user enumeration

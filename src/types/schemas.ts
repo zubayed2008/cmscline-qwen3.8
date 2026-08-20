@@ -138,6 +138,40 @@ export type CreateUserSchema = z.infer<typeof createUserSchema>;
 export type UpdateUserSchema = z.infer<typeof updateUserSchema>;
 
 // ============================================================================
+// Auth Schemas (Phase 14: User Management)
+// ============================================================================
+
+export const verifyEmailSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email address'),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+export const updateProfileSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Name is required')
+    .max(100, 'Name must be 100 characters or less')
+    .optional(),
+  email: z.string().email('Invalid email address').optional(),
+  currentPassword: z.string().min(1, 'Current password is required').optional(),
+  newPassword: z.string().min(8, 'Password must be at least 8 characters').optional(),
+  profileImage: z.string().max(1000, 'Profile image URL must be 1000 characters or less').optional(),
+});
+
+export type VerifyEmailSchema = z.infer<typeof verifyEmailSchema>;
+export type ForgotPasswordSchema = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>;
+export type UpdateProfileSchema = z.infer<typeof updateProfileSchema>;
+
+// ============================================================================
 // Navigation Menu Schemas
 // ============================================================================
 

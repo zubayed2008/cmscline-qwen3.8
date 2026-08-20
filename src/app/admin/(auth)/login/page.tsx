@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
+import Link from 'next/link';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Card, { CardBody, CardHeader } from '@/components/ui/Card';
@@ -78,6 +79,12 @@ function LoginForm() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
+
+            <div className="text-center">
+              <Link href="/forgot-password" className="text-blue-600 hover:text-blue-800 text-sm">
+                Forgot Password?
+              </Link>
+            </div>
           </form>
         </CardBody>
       </Card>

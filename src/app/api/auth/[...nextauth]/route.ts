@@ -31,6 +31,9 @@ export const authOptions: AuthOptions = {
           throw new Error('Invalid email or password');
         }
 
+        // Track last login
+        await User.findByIdAndUpdate(user._id, { lastLoginAt: new Date() });
+
         return {
           id: user._id.toString(),
           email: user.email,

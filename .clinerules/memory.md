@@ -9,6 +9,29 @@ Enterprise CMS built with Next.js 16.3.1 App Router, MongoDB/Mongoose, TypeScrip
 ## Current State
 Last commit: `6f676d8` - Phase 10: SEO & Discovery.
 
+### Recent Work (Phase 14 - User Management):
+- Created `src/utils/tokens.ts` - Token generation utility (crypto-based, hashed storage, expiry)
+- Created `src/utils/email.ts` - Email sending utility (nodemailer, SMTP, HTML templates)
+- Created `src/app/api/auth/verify-email/route.ts` - POST /api/auth/verify-email endpoint
+- Created `src/app/api/auth/forgot-password/route.ts` - POST /api/auth/forgot-password endpoint (user enumeration prevention)
+- Created `src/app/api/auth/reset-password/route.ts` - POST /api/auth/reset-password endpoint
+- Created `src/app/api/auth/profile/route.ts` - GET/PUT /api/auth/profile endpoints
+- Created `src/app/(public)/verify-email/page.tsx` - Email verification page
+- Created `src/app/(public)/forgot-password/page.tsx` - Forgot password page
+- Created `src/app/(public)/reset-password/page.tsx` - Reset password page
+- Created `src/app/admin/(dashboard)/profile/page.tsx` - Admin profile page
+- Created `src/components/features/admin/ProfileForm.tsx` - Profile form component
+- Updated `src/models/user-model.ts` - Added emailVerified, emailVerificationToken, emailVerificationExpiry, passwordResetToken, passwordResetExpiry, lastLoginAt, profileImage
+- Updated `src/services/user-service.ts` - Added updateProfile, trackLogin, generateEmailVerificationToken, verifyEmail, generatePasswordResetToken, resetPassword
+- Updated `src/types/schemas.ts` - Added verifyEmailSchema, forgotPasswordSchema, resetPasswordSchema, updateProfileSchema
+- Updated `src/app/api/auth/[...nextauth]/route.ts` - Added lastLoginAt tracking
+- Updated `src/components/features/admin/AdminSidebar.tsx` - Added Profile link with UserCircle icon
+- Updated `src/app/admin/(auth)/login/page.tsx` - Added Forgot Password link
+- Updated `scripts/seed.ts` - Added new user fields, default admin pre-verified
+- Added dependencies: nodemailer ^6.9.7, @types/nodemailer ^6.4.14
+- Added environment variables: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, EMAIL_FROM
+- Build verified successfully with all new routes
+
 ### Recent Work (Phase 10 - SEO & Discovery):
 - Created `src/utils/seo.ts` - SEO utility functions (generateExcerpt, generateCanonicalUrl, generateOgImageUrl, formatSeoDate, generatePageTitle, sanitizeSlug, generateBlogStructuredData, generatePageStructuredData)
 - Created `src/components/features/seo/StructuredData.tsx` - JSON-LD structured data component
@@ -49,6 +72,11 @@ Last commit: `6f676d8` - Phase 10: SEO & Discovery.
 - `CLOUDINARY_API_SECRET` - Cloudinary API secret
 - `CLOUDINARY_FOLDER` - Default upload folder (default: cms)
 - `IMAGE_OPTIMIZATION_QUALITY` - Image quality (default: 80)
+- `SMTP_HOST` - SMTP server hostname
+- `SMTP_PORT` - SMTP server port (587 for TLS, 465 for SSL)
+- `SMTP_USER` - SMTP authentication username
+- `SMTP_PASSWORD` - SMTP authentication password
+- `EMAIL_FROM` - From address for outgoing emails
 
 ### Previous Fixes (not committed):
 - Fixed circular reference in `src/app/(public)/page.tsx` - Mongoose subdocument `navMenu?.siteInfo` was being passed directly to `ContactSection` client component. Now explicitly extracts only serializable properties (address, phone, email).
@@ -59,10 +87,19 @@ Last commit: `6f676d8` - Phase 10: SEO & Discovery.
 
 ## Implementation Status
 
-### Phase 1-6 Complete, Phase 5.5 (Playwright E2E) NOT done, Phase 7-10 Complete
+### Phase 1-6 Complete, Phase 5.5 (Playwright E2E) NOT done, Phase 7-10, 14 Complete
 
 ### Key Features Implemented:
-1. **SEO & Discovery** (Phase 10)
+1. **User Management** (Phase 14)
+   - Email verification with hashed tokens and expiry
+   - Password reset with email links
+   - Profile management (name, email, profile image, password)
+   - Last login tracking
+   - User enumeration prevention on forgot-password
+   - Current password required for sensitive changes
+   - SMTP email sending with nodemailer
+
+2. **SEO & Discovery** (Phase 10)
    - SEO utility functions in `src/utils/seo.ts`
    - StructuredData component for JSON-LD
    - Dynamic sitemap generation (`/sitemap.xml`)
@@ -70,7 +107,7 @@ Last commit: `6f676d8` - Phase 10: SEO & Discovery.
    - Enhanced metadata across all public pages
    - OpenGraph, Twitter cards, canonical URLs
 
-2. **Media Upload with Cloudinary** (Phase 9)
+3. **Media Upload with Cloudinary** (Phase 9)
    - Storage provider abstraction (IStorageProvider interface)
    - Cloudinary integration with image optimization
    - File upload with drag-and-drop (FileUploader component)
@@ -78,14 +115,14 @@ Last commit: `6f676d8` - Phase 10: SEO & Discovery.
    - URL copy functionality in media management
    - Admin dashboard redesign with Lucide icons
 
-3. **TipTap Rich Text Editor**
+4. **TipTap Rich Text Editor**
    - Extensions: carousel-extension.ts, media-extension.ts
    - NodeViews: CarouselNodeView.tsx (blue), MediaNodeView.tsx (green)
    - RichTextEditor.tsx - toolbar with bold/italic/strike/headings/lists/blockquote/link/image/undo/redo + Carousel/Media insert buttons
    - ContentRenderer.tsx - Server component rendering embedded carousels/media on public pages
    - Used in PageForm, BlogForm, page.tsx, [slug]/page.tsx, blog/[slug]/page.tsx
 
-4. **Earlier Work:**
+5. **Earlier Work:**
    - Admin pages for users, carousels, pages, blogs, navigation, media, categories, tags, service-items, contact-submissions
    - NextAuth.js authentication
    - Service layer with "single default" toggle logic
@@ -93,6 +130,14 @@ Last commit: `6f676d8` - Phase 10: SEO & Discovery.
    - Theme: light-only (#f9fafb background, #111827 foreground)
 
 ## Key Technical Patterns
+
+### User Management (Phase 14)
+- Tokens: crypto.randomBytes, hashed with SHA-256 before storage
+- Email: nodemailer with SMTP, HTML templates with inline styles
+- Forgot-password: always returns success to prevent user enumeration
+- Profile update: current password required for email/password changes
+- Email change: resets emailVerified to false, generates new verification token
+- Last login: tracked via User.findByIdAndUpdate in NextAuth authorize
 
 ### SEO
 - `generateMetadata` function in page components for dynamic metadata
@@ -133,6 +178,19 @@ Last commit: `6f676d8` - Phase 10: SEO & Discovery.
 
 ## Files to Remember
 
+### User Management (Phase 14)
+- src/utils/tokens.ts
+- src/utils/email.ts
+- src/app/api/auth/verify-email/route.ts
+- src/app/api/auth/forgot-password/route.ts
+- src/app/api/auth/reset-password/route.ts
+- src/app/api/auth/profile/route.ts
+- src/app/(public)/verify-email/page.tsx
+- src/app/(public)/forgot-password/page.tsx
+- src/app/(public)/reset-password/page.tsx
+- src/app/admin/(dashboard)/profile/page.tsx
+- src/components/features/admin/ProfileForm.tsx
+
 ### SEO
 - src/utils/seo.ts
 - src/components/features/seo/StructuredData.tsx
@@ -169,7 +227,7 @@ Last commit: `6f676d8` - Phase 10: SEO & Discovery.
 
 ### Admin Layout
 - src/app/admin/(dashboard)/page.tsx (redesigned dashboard)
-- src/components/features/admin/AdminSidebar.tsx (Lucide icons)
+- src/components/features/admin/AdminSidebar.tsx (Lucide icons, Profile link)
 - src/components/features/admin/AdminHeader.tsx (enhanced header)
 
 ### Services
@@ -177,7 +235,7 @@ Last commit: `6f676d8` - Phase 10: SEO & Discovery.
 - src/services/blog-service.ts
 - src/services/carousel-service.ts (getActiveCarouselItemsByType)
 - src/services/navigation-service.ts
-- src/services/user-service.ts
+- src/services/user-service.ts (email verification, password reset, profile update)
 - src/services/media-service.ts (uploadMedia, validation)
 - src/services/contact-service.ts
 - src/services/service-item-service.ts

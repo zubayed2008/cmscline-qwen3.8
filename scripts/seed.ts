@@ -79,6 +79,13 @@ async function seed(): Promise<void> {
         passwordHash: { type: String, required: true },
         role: { type: String, enum: ['Admin', 'Editor'], default: 'Editor' },
         isActive: { type: Boolean, default: true },
+        emailVerified: { type: Boolean, default: false },
+        emailVerificationToken: { type: String },
+        emailVerificationExpiry: { type: Date },
+        passwordResetToken: { type: String },
+        passwordResetExpiry: { type: Date },
+        lastLoginAt: { type: Date },
+        profileImage: { type: String },
       },
       { timestamps: true }
     );
@@ -91,6 +98,7 @@ async function seed(): Promise<void> {
       passwordHash,
       role: DEFAULT_ADMIN.role,
       isActive: true,
+      emailVerified: true, // Default admin is pre-verified
     });
     console.log(`   ✅ Admin created: ${adminUser.email}`);
 

@@ -243,21 +243,24 @@ describe('MediaService', () => {
 
   describe('deleteMedia', () => {
     it('should delete a media record by ID', async () => {
-      const mockMedia = { _id: '1', filename: 'deleted.jpg' };
+      const mockMedia = { _id: '1', filename: 'deleted.jpg', storageType: 'url' };
+      (Media.findById as jest.Mock).mockResolvedValue(mockMedia);
       (Media.findByIdAndDelete as jest.Mock).mockResolvedValue(mockMedia);
 
       const result = await MediaService.deleteMedia('1');
 
+      expect(Media.findById).toHaveBeenCalledWith('1');
       expect(Media.findByIdAndDelete).toHaveBeenCalledWith('1');
       expect(result).toEqual(mockMedia);
     });
 
     it('should return null if media not found', async () => {
-      (Media.findByIdAndDelete as jest.Mock).mockResolvedValue(null);
+      (Media.findById as jest.Mock).mockResolvedValue(null);
 
       const result = await MediaService.deleteMedia('nonexistent');
 
       expect(result).toBeNull();
+      expect(Media.findByIdAndDelete).not.toHaveBeenCalled();
     });
   });
 });

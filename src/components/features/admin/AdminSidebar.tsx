@@ -14,6 +14,7 @@ import {
   Wrench,
   Users,
   Mail,
+  UserCircle,
 } from 'lucide-react';
 
 // Categorized navigation items with lucide icons
@@ -52,6 +53,12 @@ const navCategories = [
     items: [
       { href: '/admin/users', label: 'Users', icon: Users },
       { href: '/admin/contact-submissions', label: 'Inbox', icon: Mail },
+    ],
+  },
+  {
+    title: 'Account',
+    items: [
+      { href: '/admin/profile', label: 'Profile', icon: UserCircle },
     ],
   },
 ];
