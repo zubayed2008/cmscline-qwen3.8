@@ -29,7 +29,7 @@ This document describes the implementation of Phase 7, which integrates a privac
 |----------|-------|---------|
 | `DATABASE_URL` | `postgresql://umami:umami@umami-db:5432/umami` | Database connection |
 | `ADMIN_USER` | `admin` | Default admin username |
-| `ADMIN_PASSWORD` | `umami-admin-123` | Default admin password |
+| `ADMIN_PASSWORD` | `umami` | Default admin password |
 | `APP_SECRET` | `change-this-to-a-random-secret-string` | Session encryption key |
 
 **Volumes:**
@@ -161,7 +161,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
 
 2. **Login:**
    - Username: `admin`
-   - Password: `umami-admin-123`
+   - Password: `umami`
 
 3. **Add Website:**
    - Go to **Settings → Websites**
