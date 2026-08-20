@@ -1,0 +1,44 @@
+# Docker Compose for Umami Analytics (Self-Hosted)
+# Usage: docker compose -f docker-compose.umami.yml up -d
+
+version: '3.8'
+
+services:
+  umami:
+    image: ghcr.io/umami-software/umami:latest
+    container_name: umami-analytics
+    restart: unless-stopped
+    environment:
+      # Database URL - using PostgreSQL for production
+      DATABASE_URL: postgresql://umami:umami@umami-db:5432/umami
+      # Default admin credentials (CHANGE THESE!)
+      ADMIN_USER: admin
+      ADMIN_PASSWORD: umami
+      # App secret for session encryption
+      APP_SECRET: change-this-to-a-random-secret-string
+    ports:
+      - '3001:3000'
+    depends_on:
+      - umami-db
+    networks:
+      - umami-network
+
+  umami-db:
+    image: postgres:15-alpine
+    container_name: umami-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: umami
+    volumes:
+      - umami-db-data:/var/lib/postgresql/data
+    networks:
+      - umami-network
+
+volumes:
+  umami-db-data:
+
+networks:
+  umami-network:
+    driver: bridge

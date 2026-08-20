@@ -12,6 +12,7 @@ A comprehensive Content Management System (CMS) built with Next.js App Router, M
 | NextAuth.js v4 | Authentication (Credentials + JWT) |
 | Tailwind CSS | Styling |
 | bcryptjs | Password hashing |
+| Umami | Self-hosted analytics (Phase 7) |
 
 ## Project Structure
 
@@ -54,9 +55,43 @@ Create/edit `.env.local`:
 MONGODB_URI=mongodb://localhost:27017/cms
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-secure-random-secret-here
+
+# Umami Analytics (optional - only if self-hosting)
+# NEXT_PUBLIC_UMAMI_WEBSITE_ID=your-website-id
+# NEXT_PUBLIC_UMAMI_SCRIPT_URL=http://localhost:3001/script.js
 ```
 
 > ⚠️ **Important:** Replace `NEXTAUTH_SECRET` with a secure random string.
+
+### Umami Analytics Setup (Optional)
+
+Umami is a privacy-focused, self-hosted analytics platform. To run it locally:
+
+```bash
+# Start Umami with Docker Compose
+docker compose -f docker-compose.umami.yml up -d
+```
+
+This starts:
+- **Umami** at [http://127.0.0.1:3001](http://127.0.0.1:3001)
+- **PostgreSQL** database for Umami
+
+> 💡 **Windows Tip:** Use `127.0.0.1:3001` instead of `localhost:3001` as Docker Desktop may not forward IPv6 correctly.
+
+**Default credentials:**
+- Username: `admin`
+- Password: `umami`
+
+> ⚠️ **Important:** Change the default credentials in `docker-compose.umami.yml` before production use.
+
+**After starting Umami:**
+1. Log in to [http://127.0.0.1:3001](http://127.0.0.1:3001)
+2. Add a new website and get the Website ID
+3. Update `.env.local` with:
+   ```env
+   NEXT_PUBLIC_UMAMI_WEBSITE_ID=your-website-id
+   NEXT_PUBLIC_UMAMI_SCRIPT_URL=http://localhost:3001/script.js
+   ```
 
 ### Running the Development Server
 
@@ -112,11 +147,12 @@ const session = await requireAdmin();
 ## Development Status
 
 - ✅ **Phase 1:** Foundation & Infrastructure (Models, DB connection, Auth)
-- ⬜ **Phase 2:** Service Layer (Business logic)
-- ⬜ **Phase 3:** API Controllers
-- ⬜ **Phase 4:** Admin Portal
-- ⬜ **Phase 5:** Public Frontend
-- ⬜ **Phase 6:** Polish & Seeding
+- ✅ **Phase 2:** Service Layer (Business logic)
+- ✅ **Phase 3:** API Controllers
+- ✅ **Phase 4:** Admin Portal
+- ✅ **Phase 5:** Public Frontend
+- ✅ **Phase 6:** Polish & Seeding
+- ✅ **Phase 7:** Self-Hosted Analytics (Umami)
 
 See `implement_phase_1.md` for detailed implementation notes.
 

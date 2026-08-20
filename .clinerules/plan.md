@@ -70,3 +70,13 @@ This document outlines the sequential phases for building the Full-Stack Next.js
 *   [ ] **Step 6.1:** Create a `/scripts/seed.ts` file to insert an initial Admin user and a default placeholder Homepage to prevent empty-state crashes.
 *   [ ] **Step 6.2:** Run ESLint and Prettier across the codebase.
 *   [ ] **Step 6.3:** Verify all error boundaries and loading states (`loading.tsx`, `error.tsx`) are implemented in the App Router.
+
+---
+
+## Phase 7: Self-Hosted Analytics & Monitoring (Umami)
+**Goal:** Integrate a privacy-focused, self-hosted Umami instance to track pageviews locally without relying on third-party cookies.
+
+*   [ ] **Step 7.1:** Spin up a local Umami instance using Docker (`docker compose up -d`) or by cloning the repository and running `pnpm install`, configuring the database (`DATABASE_URL`), and running `pnpm run build` followed by `pnpm run start`. 
+*   [ ] **Step 7.2:** Set up the required environment variables in your Next.js `.env.local` file: `NEXT_PUBLIC_UMAMI_WEBSITE_ID` and `NEXT_PUBLIC_UMAMI_SCRIPT_URL`.
+*   [ ] **Step 7.3:** Create a custom `<UmamiAnalytics />` component returning the `next/script` component (`<Script />`) to inject the tracking script asynchronously using the environment variables.
+*   [ ] **Step 7.4:** Import and render this `<UmamiAnalytics />` component directly inside your root `/app/layout.tsx` so analytics can run across all routes without hydration errors.

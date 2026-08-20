@@ -7,9 +7,19 @@ Enterprise CMS built with Next.js 16.3.1 App Router, MongoDB/Mongoose, TypeScrip
 - **DO NOT commit or push** unless explicitly instructed by the user.
 
 ## Current State
-Last commit: `29ca19c` - Fix RangeError: Maximum call stack size exceeded on admin pages.
+Last commit: `897d436` - Phase 7: Self-Hosted Analytics (Umami).
 
-### Recent Fixes (not committed):
+### Recent Work (Phase 7 - Umami Analytics):
+- Created `src/components/UmamiAnalytics.tsx` - Client component using `next/script` for async loading
+- Added `docker-compose.umami.yml` - Docker setup for local Umami instance with PostgreSQL
+- Updated `src/app/layout.tsx` - Integrated UmamiAnalytics in root layout
+- Updated `README.md` - Added Umami setup instructions and environment variables documentation
+
+### Environment Variables Required:
+- `NEXT_PUBLIC_UMAMI_WEBSITE_ID` - Website ID from Umami dashboard
+- `NEXT_PUBLIC_UMAMI_SCRIPT_URL` - URL where Umami script is hosted (e.g., http://localhost:3001/script.js)
+
+### Previous Fixes (not committed):
 - Fixed circular reference in `src/app/(public)/page.tsx` - Mongoose subdocument `navMenu?.siteInfo` was being passed directly to `ContactSection` client component. Now explicitly extracts only serializable properties (address, phone, email).
 
 ## Implementation Status
