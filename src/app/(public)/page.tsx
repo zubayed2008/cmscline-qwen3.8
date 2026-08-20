@@ -7,12 +7,41 @@ import ServiceGrid from '@/components/ui/ServiceGrid';
 import ContactSection from '@/components/features/ContactSection';
 import MapLocation from '@/components/ui/MapLocation';
 import ContentRenderer from '@/components/features/content/ContentRenderer';
+import StructuredData from '@/components/features/seo/StructuredData';
+import { generateExcerpt, generatePageStructuredData } from '@/utils/seo';
 
 export const dynamic = 'force-dynamic';
 
+const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Enterprise CMS';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
 export const metadata: Metadata = {
   title: 'Home',
-  description: 'Welcome to our website',
+  description: 'Welcome to our website - Building digital experiences with modern technology',
+  openGraph: {
+    title: `Home | ${siteName}`,
+    description: 'Welcome to our website - Building digital experiences with modern technology',
+    url: siteUrl,
+    siteName,
+    images: [
+      {
+        url: `${siteUrl}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: siteName,
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Home | ${siteName}`,
+    description: 'Welcome to our website - Building digital experiences with modern technology',
+    images: [`${siteUrl}/og-image.png`],
+  },
+  alternates: {
+    canonical: siteUrl,
+  },
 };
 
 /**
@@ -51,8 +80,19 @@ export default async function HomePage() {
       }
     : undefined;
 
+  // Generate structured data for homepage
+  const structuredData = generatePageStructuredData({
+    title: defaultPage?.title || siteName,
+    description: generateExcerpt(defaultPage?.content || '', 160),
+    url: siteUrl,
+    siteName,
+  });
+
   return (
     <div>
+      {/* Structured Data for SEO */}
+      <StructuredData data={structuredData} />
+
       {/* Hero Carousel */}
       {heroCarouselItems.length > 0 ? (
         <GenericCarousel type="hero" items={heroCarouselItems} />

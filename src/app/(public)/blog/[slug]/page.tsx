@@ -3,8 +3,13 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BlogService } from '@/services/blog-service';
 import ContentRenderer from '@/components/features/content/ContentRenderer';
+import StructuredData from '@/components/features/seo/StructuredData';
+import { generateExcerpt, generateCanonicalUrl, generateOgImageUrl, generateBlogStructuredData } from '@/utils/seo';
 
 export const dynamic = 'force-dynamic';
+
+const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Enterprise CMS';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
 // Interfaces for populated fields
 interface PopulatedMedia {
@@ -39,14 +44,35 @@ export async function generateMetadata({ params }: BlogDetailPageProps): Promise
     return { title: 'Post Not Found' };
   }
 
-  const excerpt = blog.content
-    .replace(/<[^>]*>/g, '')
-    .substring(0, 160)
-    .trim();
+  const excerpt = generateExcerpt(blog.content || '', 160);
+  const canonicalUrl = generateCanonicalUrl(siteUrl, `/blog/${slug}`);
+  const featuredImage = blog.featuredImage as unknown as PopulatedMedia | null;
+  const ogImage = generateOgImageUrl(featuredImage?.url, siteUrl);
 
   return {
     title: blog.title,
     description: excerpt,
+    openGraph: {
+      title: `${blog.title} | ${siteName}`,
+      description: excerpt,
+      url: canonicalUrl,
+      siteName,
+      images: ogImage
+        ? [{ url: ogImage, width: 1200, height: 630, alt: blog.title }]
+        : [{ url: `${siteUrl}/og-image.png`, width: 1200, height: 630, alt: blog.title }],
+      type: 'article',
+      publishedTime: blog.createdAt.toISOString(),
+      modifiedTime: blog.updatedAt.toISOString(),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${blog.title} | ${siteName}`,
+      description: excerpt,
+      images: ogImage ? [ogImage] : [`${siteUrl}/og-image.png`],
+    },
+    alternates: {
+      canonical: canonicalUrl,
+    },
   };
 }
 
@@ -67,8 +93,24 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   const category = blog.category as unknown as PopulatedCategory | null;
   const tags = (blog.tags as unknown as PopulatedTag[]) || [];
 
+  // Generate structured data for this blog post
+  const canonicalUrl = generateCanonicalUrl(siteUrl, `/blog/${slug}`);
+  const ogImage = generateOgImageUrl(featuredImage?.url, siteUrl);
+  const structuredData = generateBlogStructuredData({
+    title: blog.title,
+    excerpt: generateExcerpt(blog.content || '', 160),
+    publishedAt: blog.createdAt,
+    updatedAt: blog.updatedAt,
+    imageUrl: ogImage,
+    url: canonicalUrl,
+    siteName,
+  });
+
   return (
     <article className="py-16 bg-white">
+      {/* Structured Data for SEO */}
+      <StructuredData data={structuredData} />
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Link */}
         <Link
