@@ -13,6 +13,7 @@ const navItems = [
   { href: '/admin/carousels', label: 'Carousels', icon: '🎠' },
   { href: '/admin/service-items', label: 'Services', icon: '⚙️' },
   { href: '/admin/navigation', label: 'Navigation', icon: '🧭' },
+  { href: '/admin/analytics', label: 'Analytics', icon: '📈' },
   { href: '/admin/users', label: 'Users', icon: '👥' },
   { href: '/admin/contact-submissions', label: 'Inbox', icon: '📬' },
 ];

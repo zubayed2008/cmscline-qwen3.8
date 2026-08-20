@@ -59,6 +59,11 @@ NEXTAUTH_SECRET=your-secure-random-secret-here
 # Umami Analytics (optional - only if self-hosting)
 # NEXT_PUBLIC_UMAMI_WEBSITE_ID=your-website-id
 # NEXT_PUBLIC_UMAMI_SCRIPT_URL=http://localhost:3001/script.js
+
+# Umami API (for admin dashboard analytics display)
+# UMAMI_API_URL=http://127.0.0.1:3001
+# UMAMI_USERNAME=admin
+# UMAMI_PASSWORD=umami
 ```
 
 > ⚠️ **Important:** Replace `NEXTAUTH_SECRET` with a secure random string.
@@ -91,7 +96,20 @@ This starts:
    ```env
    NEXT_PUBLIC_UMAMI_WEBSITE_ID=your-website-id
    NEXT_PUBLIC_UMAMI_SCRIPT_URL=http://localhost:3001/script.js
+   UMAMI_API_URL=http://127.0.0.1:3001
+   UMAMI_USERNAME=admin
+   UMAMI_PASSWORD=umami
    ```
+
+**Admin Dashboard Analytics:**
+
+Once Umami is configured, navigate to `/admin/analytics` in the CMS admin panel to view:
+- Active visitors
+- Pageviews, unique visitors
+- Bounce rate, average session duration
+- 30-day pageviews chart
+
+The analytics dashboard fetches data from the Umami API and displays it natively within the CMS.
 
 ### Running the Development Server
 
