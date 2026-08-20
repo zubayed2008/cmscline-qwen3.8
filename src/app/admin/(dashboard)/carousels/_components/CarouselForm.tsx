@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
@@ -25,9 +25,24 @@ interface ImageEntry {
   title: string;
 }
 
+interface MediaItem {
+  _id: string;
+  filename: string;
+  url: string;
+  optimizedUrl?: string;
+  mimeType: string;
+}
+
+type InputMode = 'library' | 'manual';
+
 export default function CarouselForm({ initialData }: CarouselFormProps) {
   const router = useRouter();
   const isEditing = !!initialData;
+
+  // Media library state
+  const [availableMedia, setAvailableMedia] = useState<MediaItem[]>([]);
+  const [inputMode, setInputMode] = useState<InputMode>(isEditing ? 'manual' : 'library');
+  const [isLoadingMedia, setIsLoadingMedia] = useState(false);
 
   // For editing, use single image mode; for creating, allow multiple images
   const [images, setImages] = useState<ImageEntry[]>(
@@ -41,6 +56,29 @@ export default function CarouselForm({ initialData }: CarouselFormProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Fetch available media on mount
+  useEffect(() => {
+    const fetchMedia = async () => {
+      setIsLoadingMedia(true);
+      try {
+        const response = await fetch('/api/media');
+        if (response.ok) {
+          const data = await response.json();
+          // Filter only image types
+          const imageMedia = (data.data || []).filter((m: MediaItem) =>
+            m.mimeType.startsWith('image/')
+          );
+          setAvailableMedia(imageMedia);
+        }
+      } catch {
+        console.error('Failed to fetch media');
+      } finally {
+        setIsLoadingMedia(false);
+      }
+    };
+    fetchMedia();
+  }, []);
+
   const addImageField = () => {
     setImages((prev) => [...prev, { id: Date.now().toString(), url: '', title: '' }]);
   };
@@ -53,6 +91,14 @@ export default function CarouselForm({ initialData }: CarouselFormProps) {
 
   const updateImage = (id: string, field: 'url' | 'title', value: string) => {
     setImages((prev) => prev.map((img) => (img.id === id ? { ...img, [field]: value } : img)));
+  };
+
+  const selectMedia = (imageIndex: number, media: MediaItem) => {
+    setImages((prev) =>
+      prev.map((img, idx) =>
+        idx === imageIndex ? { ...img, url: media.optimizedUrl || media.url } : img
+      )
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -125,7 +171,7 @@ export default function CarouselForm({ initialData }: CarouselFormProps) {
   };
 
   return (
-    <Card className="max-w-3xl">
+    <Card className="max-w-4xl">
       <CardHeader>
         <h2 className="text-lg font-semibold text-gray-900">
           {isEditing ? 'Edit Carousel Item' : 'Create Carousel Items'}
@@ -142,6 +188,37 @@ export default function CarouselForm({ initialData }: CarouselFormProps) {
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
               {error}
+            </div>
+          )}
+
+          {/* Input Mode Toggle - Only for create mode */}
+          {!isEditing && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Image Source</label>
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => setInputMode('library')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    inputMode === 'library'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Select from Media Library
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInputMode('manual')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    inputMode === 'manual'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Enter URL Manually
+                </button>
+              </div>
             </div>
           )}
 
@@ -167,13 +244,75 @@ export default function CarouselForm({ initialData }: CarouselFormProps) {
                     </button>
                   )}
                 </div>
-                <Input
-                  label="Image URL"
-                  value={img.url}
-                  onChange={(e) => updateImage(img.id, 'url', e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                  required
-                />
+
+                {/* Media Library Selector */}
+                {(inputMode === 'library' || isEditing) && (
+                  <div className="space-y-2">
+                    <label className="block text-xs font-medium text-gray-600">
+                      Select from Media Library
+                    </label>
+                    {isLoadingMedia ? (
+                      <div className="text-sm text-gray-500 py-4">Loading media...</div>
+                    ) : availableMedia.length === 0 ? (
+                      <div className="text-sm text-gray-500 py-4">
+                        No images in media library.{' '}
+                        <a href="/admin/media/new" className="text-blue-600 hover:underline">
+                          Add some first
+                        </a>
+                        .
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 max-h-48 overflow-y-auto p-2 bg-white rounded border">
+                        {availableMedia.map((media) => (
+                          <button
+                            key={media._id}
+                            type="button"
+                            onClick={() => selectMedia(index, media)}
+                            className={`relative aspect-square rounded border-2 overflow-hidden hover:border-blue-500 transition-colors ${
+                              img.url === (media.optimizedUrl || media.url)
+                                ? 'border-blue-600 ring-2 ring-blue-200'
+                                : 'border-gray-200'
+                            }`}
+                            title={media.filename}
+                          >
+                            <img
+                              src={media.url}
+                              alt={media.filename}
+                              className="w-full h-full object-cover"
+                            />
+                            {img.url === (media.optimizedUrl || media.url) && (
+                              <div className="absolute inset-0 bg-blue-600 bg-opacity-20 flex items-center justify-center">
+                                <svg
+                                  className="w-5 h-5 text-white"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Manual URL Input */}
+                {(inputMode === 'manual' || isEditing) && (
+                  <Input
+                    label="Image URL"
+                    value={img.url}
+                    onChange={(e) => updateImage(img.id, 'url', e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                    required
+                  />
+                )}
+
                 <Input
                   label="Title (optional)"
                   value={img.title}

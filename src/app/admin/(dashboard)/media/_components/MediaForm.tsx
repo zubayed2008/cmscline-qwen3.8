@@ -9,6 +9,61 @@ import Button from '@/components/ui/Button';
 import Card, { CardBody, CardHeader } from '@/components/ui/Card';
 import FileUploader from '@/components/features/admin/FileUploader';
 
+function CopyButton({ text, label }: { text: string; label?: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+      title={`Copy ${label || 'URL'}`}
+    >
+      {copied ? (
+        <>
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Copied!
+        </>
+      ) : (
+        <>
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+            />
+          </svg>
+          {label || 'Copy'}
+        </>
+      )}
+    </button>
+  );
+}
+
 interface MediaFormProps {
   initialData?: {
     _id: string;
@@ -250,6 +305,74 @@ export default function MediaForm({ initialData }: MediaFormProps) {
             </Button>
           </div>
         </form>
+
+        {/* URL Details Section - Only shown when editing */}
+        {isEditing && initialData && (
+          <div className="mt-6 pt-6 border-t space-y-4">
+            <h3 className="text-sm font-semibold text-gray-900">Media Properties</h3>
+
+            {/* Properties Grid */}
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium text-gray-500">Type:</span>
+                <p className="text-gray-900">{initialData.mimeType}</p>
+              </div>
+              <div>
+                <span className="font-medium text-gray-500">Size:</span>
+                <p className="text-gray-900">
+                  {initialData.size === 0
+                    ? 'N/A'
+                    : initialData.size < 1024
+                      ? `${initialData.size} Bytes`
+                      : initialData.size < 1024 * 1024
+                        ? `${(initialData.size / 1024).toFixed(2)} KB`
+                        : `${(initialData.size / (1024 * 1024)).toFixed(2)} MB`}
+                </p>
+              </div>
+              <div>
+                <span className="font-medium text-gray-500">Dimensions:</span>
+                <p className="text-gray-900">
+                  {initialData.dimensions
+                    ? `${initialData.dimensions.width}×${initialData.dimensions.height}px`
+                    : 'N/A'}
+                </p>
+              </div>
+              <div>
+                <span className="font-medium text-gray-500">Storage:</span>
+                <p className="text-gray-900 capitalize">{initialData.storageType}</p>
+              </div>
+            </div>
+
+            {/* URLs with Copy */}
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Original URL
+                </label>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-xs bg-gray-100 p-2 rounded break-all">
+                    {initialData.url}
+                  </code>
+                  <CopyButton text={initialData.url} label="Copy" />
+                </div>
+              </div>
+
+              {initialData.optimizedUrl && initialData.optimizedUrl !== initialData.url && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Optimized URL
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 text-xs bg-gray-100 p-2 rounded break-all">
+                      {initialData.optimizedUrl}
+                    </code>
+                    <CopyButton text={initialData.optimizedUrl} label="Copy" />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </CardBody>
     </Card>
   );

@@ -15,8 +15,14 @@ export default async function AdminMediaPage() {
     _id: item._id.toString(),
     filename: item.filename,
     url: item.url,
+    optimizedUrl: item.optimizedUrl || item.url,
     mimeType: item.mimeType,
     size: item.size,
+    dimensions: item.dimensions
+      ? { width: item.dimensions.width, height: item.dimensions.height }
+      : undefined,
+    storageType: item.storageType,
+    altText: item.altText || '',
     isActive: item.isActive,
     createdAt: item.createdAt?.toISOString() ?? '',
     updatedAt: item.updatedAt?.toISOString() ?? '',
