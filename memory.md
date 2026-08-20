@@ -1,11 +1,20 @@
 # CMS Project Memory
 
 ## Project Overview
-Enterprise Full-Stack CMS built with Next.js App Router, MongoDB, and Mongoose.
+Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mongoose.
 
 ## Current Status
 **Phase 1: Foundation & Infrastructure - COMPLETED**
 **Phase 2: Service Layer - COMPLETED**
+**Phase 3: API Controllers - COMPLETED**
+**Phase 4: Admin Portal - COMPLETED**
+**Phase 5: Public Frontend - COMPLETED**
+**Phase 5.5: Playwright E2E - NOT DONE**
+**Phase 6: Final Polish & Seeding - COMPLETED**
+**Phase 7: Self-Hosted Analytics (Umami) - COMPLETED**
+**Phase 8: TipTap Rich Text Editor - COMPLETED**
+**Phase 9: Media Upload with Cloudinary - COMPLETED**
+**Phase 10: SEO & Discovery - COMPLETED**
 
 ## Tech Stack
 - **Framework:** Next.js 16.3.1 (App Router, Turbopack)
@@ -15,93 +24,96 @@ Enterprise Full-Stack CMS built with Next.js App Router, MongoDB, and Mongoose.
 - **Styling:** Tailwind CSS
 - **Password Hashing:** bcryptjs
 - **Testing:** Jest 30, ts-jest, ts-node
+- **Rich Text Editor:** TipTap 3.30.2
+- **Media Storage:** Cloudinary 2.10.1
+- **Icons:** lucide-react 1.33.0
+- **Analytics:** Umami (self-hosted)
 
 ## Directory Structure
 ```
 /src
   /app                    # View & Controller Routing Layer
-    /api
-      /auth
-        /[...nextauth]    # NextAuth route handler
-    layout.tsx
-    page.tsx
+    /api                  # API route handlers
+    /admin                # Admin portal (protected)
+    /(public)             # Public-facing pages
+  /components             # React UI components
+    /ui                   # Generic reusable components
+    /features             # Domain-specific components
+    /editor               # TipTap editor components
   /models                 # Mongoose schemas (10 models)
-  /services               # Business logic layer (9 services)
+  /services               # Business logic layer
+    /storage              # Storage provider abstraction
   /types                  # TypeScript type extensions
-  /utils                  # Shared utilities (db-connect, auth)
-  /components             # (empty - to be built in Phase 4/5)
-  /hooks                  # (empty)
-  /__tests__
-    /services             # Jest unit tests (4 test files, 47 tests)
+  /utils                  # Shared utilities
+  /hooks                  # Custom React hooks
+  /__tests__              # Jest unit tests
 ```
 
-## Key Files Created
+## Key Features Implemented
 
-### Database Connection
-- `src/utils/db-connect.ts` - MongoDB connection with caching for dev hot reloads
+### Phase 10: SEO & Discovery
+- `src/utils/seo.ts` - SEO utility functions (generateExcerpt, generateCanonicalUrl, generateOgImageUrl, formatSeoDate, generatePageTitle, sanitizeSlug, generateBlogStructuredData, generatePageStructuredData)
+- `src/components/features/seo/StructuredData.tsx` - JSON-LD structured data component
+- `src/app/sitemap.ts` - Dynamic sitemap generation
+- `src/app/robots.ts` - robots.txt configuration
+- Enhanced metadata across all public pages (OpenGraph, Twitter cards, canonical URLs)
 
-### Models (src/models/)
-| File | Model | Key Fields |
-|------|-------|------------|
-| page-model.ts | Page | title, slug, content, isDefaultHomepage, isActive |
-| blog-model.ts | Blog | title, slug, content, category(ref), tags(refs), featuredImage(ref), isActive |
-| category-model.ts | Category | name, slug, isActive |
-| tag-model.ts | Tag | name, slug, isActive |
-| user-model.ts | User | name, email, passwordHash, role(Admin/Editor), isActive |
-| navigation-menu-model.ts | NavigationMenu | title, isDefault, links[], siteInfo{address,phone,email}, isActive |
-| media-model.ts | Media | filename, url, mimeType, size, isActive |
-| carousel-item-model.ts | CarouselItem | title, imageOrIconUrl, type(hero/client/employee/recommendation), order, isActive |
-| service-item-model.ts | ServiceItem | title, description, icon, isActive |
-| contact-submission-model.ts | ContactSubmission | name, email, message, isRead, captchaScore |
-| index.ts | Barrel export for all models |
+### Phase 9: Media Upload with Cloudinary
+- `src/services/storage/storage-types.ts` - Storage provider type definitions
+- `src/services/storage/cloudinary-provider.ts` - Cloudinary storage provider
+- `src/services/storage/storage-provider.ts` - Storage provider factory
+- `src/components/features/admin/FileUploader.tsx` - Drag-and-drop file upload
+- Media upload API endpoint with validation
+- Media library selector in carousel form
+- Admin dashboard redesign with Lucide icons
 
-### Services (src/services/)
-| File | Service | Key Features |
-|------|---------|--------------|
-| page-service.ts | PageService | CRUD, **Single Default logic**, toggleActiveStatus, getDefaultHomepage |
-| navigation-service.ts | NavigationService | CRUD, **Single Default logic**, toggleActiveStatus, getDefaultNavigationMenu |
-| blog-service.ts | BlogService | CRUD with Category/Tag/Media relations (populate), getBlogsByCategory/Tag |
-| taxonomy-service.ts | CategoryService, TagService | CRUD for both taxonomies, slug lowercasing |
-| user-service.ts | UserService | CRUD with bcrypt password hashing, verifyCredentials, sanitizeUser |
-| media-service.ts | MediaService | CRUD, getMediaByMimeType |
-| carousel-service.ts | CarouselService | CRUD, getActiveCarouselItemsByType, reorderCarouselItems (bulkWrite) |
-| service-item-service.ts | ServiceItemService | CRUD, getActiveServiceItems |
-| contact-service.ts | ContactService | createSubmission, markAsRead/Unread, getUnreadSubmissions |
-| index.ts | Barrel export for all services |
+### Phase 8: TipTap Rich Text Editor
+- Extensions: carousel-extension.ts, media-extension.ts
+- NodeViews: CarouselNodeView.tsx, MediaNodeView.tsx
+- RichTextEditor.tsx with full toolbar
+- ContentRenderer.tsx for public pages
 
-### Authentication
-- `src/app/api/auth/[...nextauth]/route.ts` - NextAuth config with Credentials provider
-- `src/types/next-auth.d.ts` - Extended Session/JWT with id and role
-- `src/utils/auth.ts` - Helpers: getSession(), requireAuth(), isAdmin(), requireAdmin()
+### Phase 7: Umami Analytics
+- `src/components/UmamiAnalytics.tsx` - Analytics component
+- `docker-compose.umami.yml` - Docker setup
 
-### Testing
-- `jest.config.ts` - Jest configuration with ts-jest preset, path aliases
-- `src/__tests__/services/page-service.test.ts` - 15 tests including Single Default logic
-- `src/__tests__/services/navigation-service.test.ts` - 11 tests including Single Default logic
-- `src/__tests__/services/blog-service.test.ts` - 10 tests with relations
-- `src/__tests__/services/user-service.test.ts` - 11 tests with password hashing
-- **All 47 tests passing**
+### Earlier Phases
+- Admin pages for all content types
+- NextAuth.js authentication
+- Service layer with "single default" toggle logic
+- Contact form with CAPTCHA
+- Generic UI components (GenericCarousel, MapLocation, ServiceGrid, ContactSection)
 
-### Environment
-- `.env.local` - MONGODB_URI, NEXTAUTH_URL, NEXTAUTH_SECRET
+## Environment Variables
+- `MONGODB_URI` - MongoDB connection string
+- `NEXTAUTH_URL` - NextAuth URL
+- `NEXTAUTH_SECRET` - NextAuth secret
+- `NEXT_PUBLIC_SITE_URL` - Base URL for SEO
+- `NEXT_PUBLIC_SITE_NAME` - Site name
+- `NEXT_PUBLIC_SITE_DESCRIPTION` - Site description
+- `NEXT_PUBLIC_UMAMI_WEBSITE_ID` - Umami website ID
+- `NEXT_PUBLIC_UMAMI_SCRIPT_URL` - Umami script URL
+- `STORAGE_PROVIDER` - Storage backend (cloudinary)
+- `CLOUDINARY_CLOUD_NAME` - Cloudinary cloud name
+- `CLOUDINARY_API_KEY` - Cloudinary API key
+- `CLOUDINARY_API_SECRET` - Cloudinary API secret
+- `CLOUDINARY_FOLDER` - Default upload folder
+- `IMAGE_OPTIMIZATION_QUALITY` - Image quality
 
 ## Business Rules Implemented
 1. **Single Default Rule:** ✅ Implemented in PageService and NavigationService
-   - When creating/updating with `isDefaultHomepage: true` or `isDefault: true`, all other records are unset via `updateMany`
 2. **Toggle State:** ✅ All services have `getActive*` methods that filter by `isActive: true`
-3. **Auth Protection:** Ready (helpers in place, to be used in Phase 3/4)
+3. **Auth Protection:** ✅ Admin routes and API endpoints protected
 
-## Next Steps (Phase 3: API Controllers)
-- [ ] Create CRUD API routes for Pages (`/api/pages`), Blogs (`/api/blogs`), etc.
-- [ ] Add Zod validation schemas for POST/PUT payloads
-- [ ] Create `POST /api/contact` with server-side CAPTCHA verification
-- [ ] Protect admin API endpoints with auth helpers
+## Next Steps
+- Phase 5.5: Playwright E2E testing (not yet done)
+- Production deployment preparation
+- Additional SEO features (dynamic OG images, breadcrumbs, FAQ schema)
 
 ## Important Notes
 - All models use `{ timestamps: true }` for createdAt/updatedAt
 - Models check `mongoose.models.X || mongoose.model()` to prevent re-compilation in dev
-- NextAuth sign-in page configured at `/admin/login` (to be created in Phase 4)
 - Session strategy: JWT
-- CAPTCHA integration planned for Phase 3 (contact form)
-- Test command: `npm test` (47 tests)
+- Test command: `npm test`
 - Coverage command: `npm run test:coverage`
+- Seed command: `npm run seed`

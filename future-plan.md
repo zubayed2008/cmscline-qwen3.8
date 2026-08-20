@@ -568,6 +568,7 @@ async function updatePage(id, data) {
   return page;
 }
 ```
+make the redis cache configurable or optional.
 
 ---
 
