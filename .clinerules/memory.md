@@ -6,6 +6,20 @@ Enterprise CMS built with Next.js 16.3.1 App Router, MongoDB/Mongoose, TypeScrip
 ## ⚠️ IMPORTANT: User Preferences
 - **DO NOT commit or push** unless explicitly instructed by the user.
 
+## STRICT TOOL CALLING RULES ##
+1. NO MARKDOWN WRAPPING: When outputting a tool call, output ONLY raw, valid JSON. NEVER wrap the tool call in markdown code blocks (e.g., do NOT use ```json ... ```).
+2. NO YAPPING: Do not include any conversational text, explanations, or apologies before or after the tool call JSON. Output the JSON and nothing else.
+3. WINDOWS PATH FORMATTING: When generating or reading file paths for Windows 11, ALWAYS use forward slashes (/) instead of backslashes (\). If you must use backslashes, you MUST properly escape them (\\) in the JSON string, otherwise the JSON parser will fail.
+4. PARAMETER ACCURACY: Do not hallucinate tool parameters. If a required parameter is missing from the context, ask the user for it instead of guessing.
+5. STEP-BY-STEP: If a task requires multiple tool calls, think step-by-step internally, but execute only one tool call at a time and wait for the result.
+
+## STRICT FILE OPERATION RULES ##
+1. NO CODE TRUNCATION: When writing or replacing code in a file, you MUST write the COMPLETE, FULL code. NEVER use placeholders like "// ... rest of the code", "// ... existing code", or "...". Write every single line.
+2. PREFER FULL WRITES FOR SMALL FILES: If a file is under 100 lines, ALWAYS use the `write_to_file` tool to rewrite the entire file rather than using `replace_in_file`. This prevents string-matching errors.
+3. EXACT MATCHING FOR REPLACEMENTS: If you MUST use `replace_in_file`, the `old_string` parameter must match the EXACT characters in the file, including all whitespace, indentation, and newlines. Do not guess the indentation.
+4. READ BEFORE WRITE: ALWAYS use the `read_file` tool to read the current contents of a file before attempting to modify it. Never guess the current state of a file.
+5. NO CONVERSATIONAL CODE: Do not include conversational text inside the `content` parameter of the `write_to_file` tool. The parameter must contain ONLY valid, executable code.
+
 ## Current State
 Last commit: `e1e8ffc` - Phase 14: User Management.
 
