@@ -20,9 +20,17 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     redirect('/admin/login');
   }
 
+  // Extract only serializable properties to avoid circular reference issues
+  // when passing from Server Component to Client Component
+  const userProps = {
+    name: session.user?.name ?? null,
+    email: session.user?.email ?? null,
+    role: session.user?.role ?? undefined,
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
-      <AdminHeader user={session.user} />
+      <AdminHeader user={userProps} />
       <div className="flex">
         <AdminSidebar />
         <main className="flex-1 p-6 lg:p-8">{children}</main>
