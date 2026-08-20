@@ -22,8 +22,14 @@ export default async function EditMediaPage({ params }: EditMediaProps) {
     _id: media._id.toString(),
     filename: media.filename,
     url: media.url,
+    optimizedUrl: media.optimizedUrl,
     mimeType: media.mimeType,
     size: media.size,
+    storageType: media.storageType as 'url' | 'upload',
+    publicId: media.publicId,
+    dimensions: media.dimensions,
+    altText: media.altText,
+    caption: media.caption,
     isActive: media.isActive,
   };
 

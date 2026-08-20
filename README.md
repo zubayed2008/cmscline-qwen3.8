@@ -13,6 +13,7 @@ A comprehensive Content Management System (CMS) built with Next.js App Router, M
 | Tailwind CSS | Styling |
 | bcryptjs | Password hashing |
 | Umami | Self-hosted analytics (Phase 7) |
+| Cloudinary | Cloud media storage and optimization (Phase 9) |
 
 ## Project Structure
 
@@ -64,6 +65,14 @@ NEXTAUTH_SECRET=your-secure-random-secret-here
 # UMAMI_API_URL=http://127.0.0.1:3001
 # UMAMI_USERNAME=admin
 # UMAMI_PASSWORD=umami
+
+# Phase 9: Cloudinary Media Upload
+STORAGE_PROVIDER=cloudinary
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+CLOUDINARY_FOLDER=cms
+IMAGE_OPTIMIZATION_QUALITY=80
 ```
 
 > ⚠️ **Important:** Replace `NEXTAUTH_SECRET` with a secure random string.
@@ -110,6 +119,48 @@ Once Umami is configured, navigate to `/admin/analytics` in the CMS admin panel 
 - 30-day pageviews chart
 
 The analytics dashboard fetches data from the Umami API and displays it natively within the CMS.
+
+### Cloudinary Media Upload Setup (Phase 9)
+
+The CMS supports file upload via Cloudinary for media storage and automatic image optimization.
+
+**Setup Steps:**
+1. Create a free account at [Cloudinary](https://cloudinary.com)
+2. Get your credentials from the dashboard
+3. Add to `.env.local`:
+   ```env
+   STORAGE_PROVIDER=cloudinary
+   CLOUDINARY_CLOUD_NAME=your-cloud-name
+   CLOUDINARY_API_KEY=your-api-key
+   CLOUDINARY_API_SECRET=your-api-secret
+   CLOUDINARY_FOLDER=cms
+   IMAGE_OPTIMIZATION_QUALITY=80
+   ```
+
+**Environment Variables:**
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `STORAGE_PROVIDER` | Storage backend (`cloudinary`, `local`, `s3`) | `cloudinary` |
+| `CLOUDINARY_CLOUD_NAME` | Your Cloudinary cloud name | Required |
+| `CLOUDINARY_API_KEY` | Your Cloudinary API key | Required |
+| `CLOUDINARY_API_SECRET` | Your Cloudinary API secret | Required |
+| `CLOUDINARY_FOLDER` | Upload folder in Cloudinary | `cms` |
+| `IMAGE_OPTIMIZATION_QUALITY` | Image quality (1-100) | `80` |
+
+**Features:**
+- Drag-and-drop file upload in admin UI
+- Automatic image optimization via Cloudinary transformations
+- Support for JPG, PNG, WEBP, GIF formats
+- Maximum file size: 2MB
+- Storage provider abstraction allows switching to S3 or local storage
+
+**Using the Media Upload:**
+1. Navigate to `/admin/media/new`
+2. Select "File Upload" tab
+3. Drag and drop or click to select an image
+4. Add optional alt text and caption
+5. Click "Upload Media"
 
 ### Running the Development Server
 
@@ -171,6 +222,7 @@ const session = await requireAdmin();
 - ✅ **Phase 5:** Public Frontend
 - ✅ **Phase 6:** Polish & Seeding
 - ✅ **Phase 7:** Self-Hosted Analytics (Umami)
+- ✅ **Phase 9:** Media Upload with Cloudinary
 
 See `implement_phase_1.md` for detailed implementation notes.
 

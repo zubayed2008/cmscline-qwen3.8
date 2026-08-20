@@ -179,17 +179,28 @@ export type UpdateNavigationMenuSchema = z.infer<typeof updateNavigationMenuSche
 // Media Schemas
 // ============================================================================
 
+const dimensionsSchema = z.object({
+  width: z.number().positive('Width must be positive'),
+  height: z.number().positive('Height must be positive'),
+});
+
 export const createMediaSchema = z.object({
   filename: z
     .string()
     .min(1, 'Filename is required')
     .max(255, 'Filename must be 255 characters or less'),
   url: z.string().min(1, 'URL is required').max(1000, 'URL must be 1000 characters or less'),
+  optimizedUrl: z.string().max(1000, 'URL must be 1000 characters or less').optional(),
   mimeType: z
     .string()
     .min(1, 'MIME type is required')
     .max(100, 'MIME type must be 100 characters or less'),
   size: z.number().positive('Size must be positive'),
+  storageType: z.enum(['url', 'upload']).optional(),
+  publicId: z.string().max(500, 'Public ID must be 500 characters or less').optional(),
+  dimensions: dimensionsSchema.optional(),
+  altText: z.string().max(500, 'Alt text must be 500 characters or less').optional(),
+  caption: z.string().max(1000, 'Caption must be 1000 characters or less').optional(),
   isActive: z.boolean().optional(),
 });
 
@@ -204,12 +215,18 @@ export const updateMediaSchema = z.object({
     .min(1, 'URL is required')
     .max(1000, 'URL must be 1000 characters or less')
     .optional(),
+  optimizedUrl: z.string().max(1000, 'URL must be 1000 characters or less').optional(),
   mimeType: z
     .string()
     .min(1, 'MIME type is required')
     .max(100, 'MIME type must be 100 characters or less')
     .optional(),
   size: z.number().positive('Size must be positive').optional(),
+  storageType: z.enum(['url', 'upload']).optional(),
+  publicId: z.string().max(500, 'Public ID must be 500 characters or less').optional(),
+  dimensions: dimensionsSchema.optional(),
+  altText: z.string().max(500, 'Alt text must be 500 characters or less').optional(),
+  caption: z.string().max(1000, 'Caption must be 1000 characters or less').optional(),
   isActive: z.boolean().optional(),
 });
 
