@@ -3,6 +3,7 @@
  * Fetches analytics data from Umami API
  */
 
+// Normalized stats interface for the frontend
 export interface UmamiStats {
   pageviews: { value: number; prev: number };
   visitors: { value: number; prev: number };
@@ -11,9 +12,32 @@ export interface UmamiStats {
   totaltime: { value: number; prev: number };
 }
 
+// Raw stats response from Umami API v2
+interface UmamiRawStats {
+  pageviews: number;
+  visitors: number;
+  visits: number;
+  bounces: number;
+  totaltime: number;
+  comparison?: {
+    pageviews: number;
+    visitors: number;
+    visits: number;
+    bounces: number;
+    totaltime: number;
+  };
+}
+
+// Normalized pageview data point for the frontend
 export interface UmamiPageviewData {
-  X: string;
-  Y: number;
+  x: string;
+  y: number;
+}
+
+// Raw pageviews response from Umami API v2
+interface UmamiRawPageviewsResponse {
+  pageviews: Array<{ x: string; y: number }>;
+  sessions: Array<{ x: string; y: number }>;
 }
 
 export interface UmamiWebsite {
@@ -128,26 +152,52 @@ export async function getWebsiteStats(
 ): Promise<UmamiStats> {
   const start = startDate.getTime();
   const end = endDate.getTime();
-  return umamiFetch<UmamiStats>(
+  const raw = await umamiFetch<UmamiRawStats>(
     `/api/websites/${websiteId}/stats?startAt=${start}&endAt=${end}`
   );
+
+  // Transform raw Umami API v2 response to normalized format
+  const comparison = raw.comparison || {
+    pageviews: 0,
+    visitors: 0,
+    visits: 0,
+    bounces: 0,
+    totaltime: 0,
+  };
+
+  return {
+    pageviews: { value: raw.pageviews ?? 0, prev: comparison.pageviews ?? 0 },
+    visitors: { value: raw.visitors ?? 0, prev: comparison.visitors ?? 0 },
+    visits: { value: raw.visits ?? 0, prev: comparison.visits ?? 0 },
+    bounces: { value: raw.bounces ?? 0, prev: comparison.bounces ?? 0 },
+    totaltime: { value: raw.totaltime ?? 0, prev: comparison.totaltime ?? 0 },
+  };
 }
 
 export async function getActiveVisitors(websiteId: string): Promise<number> {
   try {
-    const result = await umamiFetch<{ x: number } | number | { X: string; Y: number }[]>(
-      `/api/websites/${websiteId}/active`
-    );
+    const result = await umamiFetch<
+      | { visitors: number }
+      | { x: number }
+      | number
+      | Array<{ x: string; y: number }>
+    >(`/api/websites/${websiteId}/active`);
 
     // Handle different response formats
     if (typeof result === 'number') {
       return result;
     }
     if (Array.isArray(result)) {
-      return result.reduce((sum, item) => sum + (item.Y || 0), 0);
+      return result.reduce((sum, item) => sum + (item.y || 0), 0);
     }
-    if (result && typeof result === 'object' && 'x' in result) {
-      return result.x;
+    if (result && typeof result === 'object') {
+      // Umami API v2 returns { visitors: number }
+      if ('visitors' in result) {
+        return result.visitors ?? 0;
+      }
+      if ('x' in result) {
+        return result.x;
+      }
     }
     return 0;
   } catch {
@@ -167,7 +217,7 @@ export async function getPageviews(
   try {
     const result = await umamiFetch<
       | UmamiPageviewData[]
-      | { pageviews: UmamiPageviewData[] }
+      | UmamiRawPageviewsResponse
       | { data: UmamiPageviewData[] }
     >(`/api/websites/${websiteId}/pageviews?startAt=${start}&endAt=${end}&unit=day`);
 
@@ -176,6 +226,7 @@ export async function getPageviews(
       return result;
     }
     if (result && typeof result === 'object') {
+      // Umami API v2 returns { pageviews: [...], sessions: [...] }
       if ('pageviews' in result) {
         return result.pageviews || [];
       }
@@ -184,7 +235,8 @@ export async function getPageviews(
       }
     }
     return [];
-  } catch {
+  } catch (error) {
+    console.error('[Umami Service] Failed to fetch pageviews:', error);
     return [];
   }
 }

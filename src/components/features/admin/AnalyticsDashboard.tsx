@@ -11,8 +11,8 @@ interface AnalyticsStats {
 }
 
 interface PageviewData {
-  X: string;
-  Y: number;
+  x: string;
+  y: number;
 }
 
 interface AnalyticsData {
@@ -238,7 +238,7 @@ export default function AnalyticsDashboard() {
   const avgSessionTime = visitsValue > 0 ? totaltimeValue / visitsValue : 0;
 
   // Calculate max pageview for chart scaling
-  const maxPageview = Math.max(...safePageviews.map((p) => p?.Y ?? 0), 1);
+  const maxPageview = Math.max(...safePageviews.map((p) => p?.y ?? 0), 1);
 
   return (
     <div className="space-y-6">
@@ -326,9 +326,9 @@ export default function AnalyticsDashboard() {
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Pageviews (Last 30 Days)</h3>
         <div className="h-64 flex items-end gap-1">
           {safePageviews.map((item, index) => {
-            const yValue = item?.Y ?? 0;
+            const yValue = item?.y ?? 0;
             const height = (yValue / maxPageview) * 100;
-            const date = new Date(item?.X);
+            const date = new Date(item?.x);
             const label = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
             return (
               <div
@@ -352,9 +352,9 @@ export default function AnalyticsDashboard() {
           })}
         </div>
         <div className="flex justify-between mt-2 text-xs text-gray-500">
-          <span>{safePageviews.length > 0 ? new Date(safePageviews[0]?.X).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}</span>
+          <span>{safePageviews.length > 0 ? new Date(safePageviews[0]?.x).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '-'}</span>
           <span>
-            {safePageviews.length > 0 ? new Date(safePageviews[safePageviews.length - 1]?.X).toLocaleDateString('en-US', {
+            {safePageviews.length > 0 ? new Date(safePageviews[safePageviews.length - 1]?.x).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
             }) : '-'}
