@@ -357,3 +357,16 @@ export const createContactSubmissionSchema = z.object({
 });
 
 export type CreateContactSubmissionSchema = z.infer<typeof createContactSubmissionSchema>;
+
+// ============================================================================
+// Search Schemas (Phase 12: Search & Discovery)
+// ============================================================================
+
+export const searchQuerySchema = z.object({
+  q: z.string().min(1, 'Search query is required').max(200, 'Search query must be 200 characters or less'),
+  type: z.enum(['page', 'blog', 'all']).optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+});
+
+export type SearchQuerySchema = z.infer<typeof searchQuerySchema>;

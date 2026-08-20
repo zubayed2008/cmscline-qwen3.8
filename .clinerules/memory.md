@@ -7,7 +7,25 @@ Enterprise CMS built with Next.js 16.3.1 App Router, MongoDB/Mongoose, TypeScrip
 - **DO NOT commit or push** unless explicitly instructed by the user.
 
 ## Current State
-Last commit: `6f676d8` - Phase 10: SEO & Discovery.
+Last commit: `e1e8ffc` - Phase 14: User Management.
+
+### Recent Work (Phase 12 - Search & Discovery):
+- Created `src/services/search/search-types.ts` - Search provider type definitions (ISearchProvider, SearchResult, SearchQuery, SearchResponse, SearchContentType)
+- Created `src/services/search/mongodb-search-provider.ts` - MongoDB Text Index search provider with relevance scoring
+- Created `src/services/search/search-provider.ts` - Search provider factory (getSearchProvider) reading SEARCH_PROVIDER env var
+- Created `src/services/search-service.ts` - Search service (search, searchPages, searchBlogs, searchAll, isConfigured)
+- Created `src/app/api/search/route.ts` - GET /api/search endpoint with Zod validation
+- Created `src/components/features/public/SearchBar.tsx` - Client component search input
+- Created `src/components/features/public/SearchResults.tsx` - Server component results display
+- Created `src/app/(public)/search/page.tsx` - Search results page with dynamic metadata
+- Created `src/__tests__/services/search-service.test.ts` - Search service unit tests
+- Updated `src/models/page-model.ts` - Added text index on title and content
+- Updated `src/models/blog-model.ts` - Added text index on title and content
+- Updated `src/types/schemas.ts` - Added searchQuerySchema
+- Updated `src/components/features/public/PublicHeader.tsx` - Added SearchBar to desktop and mobile nav
+- Added environment variable: SEARCH_PROVIDER=mongodb
+- Build verified successfully with /search and /api/search routes
+- All 161 tests pass (10 test suites)
 
 ### Recent Work (Phase 14 - User Management):
 - Created `src/utils/tokens.ts` - Token generation utility (crypto-based, hashed storage, expiry)
@@ -61,6 +79,7 @@ Last commit: `6f676d8` - Phase 10: SEO & Discovery.
 - Added dependencies: cloudinary ^2.10.1, lucide-react ^1.33.0
 
 ### Environment Variables Required:
+- `SEARCH_PROVIDER` - Search backend (default: mongodb; future: elasticsearch, meilisearch)
 - `NEXT_PUBLIC_SITE_URL` - Base URL for canonical URLs, sitemap, robots.txt, OG images
 - `NEXT_PUBLIC_SITE_NAME` - Site name for title templates and metadata
 - `NEXT_PUBLIC_SITE_DESCRIPTION` - Default meta description
@@ -87,10 +106,19 @@ Last commit: `6f676d8` - Phase 10: SEO & Discovery.
 
 ## Implementation Status
 
-### Phase 1-6 Complete, Phase 5.5 (Playwright E2E) NOT done, Phase 7-10, 14 Complete
+### Phase 1-6 Complete, Phase 5.5 (Playwright E2E) NOT done, Phase 7-10, 12, 14 Complete
 
 ### Key Features Implemented:
-1. **User Management** (Phase 14)
+1. **Search & Discovery** (Phase 12)
+   - Configurable search provider abstraction (ISearchProvider + getSearchProvider factory)
+   - MongoDB Text Index provider with relevance scoring ($meta: 'textScore')
+   - Search across pages and blogs (active only)
+   - SearchBar in public header (desktop + mobile)
+   - Search results page with type badges and excerpts
+   - GET /api/search endpoint with Zod validation
+   - Text indexes on page and blog models
+
+2. **User Management** (Phase 14)
    - Email verification with hashed tokens and expiry
    - Password reset with email links
    - Profile management (name, email, profile image, password)
@@ -99,7 +127,7 @@ Last commit: `6f676d8` - Phase 10: SEO & Discovery.
    - Current password required for sensitive changes
    - SMTP email sending with nodemailer
 
-2. **SEO & Discovery** (Phase 10)
+3. **SEO & Discovery** (Phase 10)
    - SEO utility functions in `src/utils/seo.ts`
    - StructuredData component for JSON-LD
    - Dynamic sitemap generation (`/sitemap.xml`)
@@ -107,7 +135,7 @@ Last commit: `6f676d8` - Phase 10: SEO & Discovery.
    - Enhanced metadata across all public pages
    - OpenGraph, Twitter cards, canonical URLs
 
-3. **Media Upload with Cloudinary** (Phase 9)
+4. **Media Upload with Cloudinary** (Phase 9)
    - Storage provider abstraction (IStorageProvider interface)
    - Cloudinary integration with image optimization
    - File upload with drag-and-drop (FileUploader component)
@@ -115,14 +143,14 @@ Last commit: `6f676d8` - Phase 10: SEO & Discovery.
    - URL copy functionality in media management
    - Admin dashboard redesign with Lucide icons
 
-4. **TipTap Rich Text Editor**
+5. **TipTap Rich Text Editor**
    - Extensions: carousel-extension.ts, media-extension.ts
    - NodeViews: CarouselNodeView.tsx (blue), MediaNodeView.tsx (green)
    - RichTextEditor.tsx - toolbar with bold/italic/strike/headings/lists/blockquote/link/image/undo/redo + Carousel/Media insert buttons
    - ContentRenderer.tsx - Server component rendering embedded carousels/media on public pages
    - Used in PageForm, BlogForm, page.tsx, [slug]/page.tsx, blog/[slug]/page.tsx
 
-5. **Earlier Work:**
+6. **Earlier Work:**
    - Admin pages for users, carousels, pages, blogs, navigation, media, categories, tags, service-items, contact-submissions
    - NextAuth.js authentication
    - Service layer with "single default" toggle logic
@@ -130,6 +158,15 @@ Last commit: `6f676d8` - Phase 10: SEO & Discovery.
    - Theme: light-only (#f9fafb background, #111827 foreground)
 
 ## Key Technical Patterns
+
+### Search Provider (Phase 12)
+- Interface: ISearchProvider (search, isConfigured)
+- Factory: getSearchProvider() returns provider based on SEARCH_PROVIDER env
+- MongoDB: $text search with { score: { $meta: 'textScore' } } projection and sort
+- Only ONE text index per collection (compound on title + content)
+- Only active content searched ({ isActive: true })
+- HTML stripped from content for clean excerpts
+- Combined page/blog results sorted by relevance score
 
 ### User Management (Phase 14)
 - Tokens: crypto.randomBytes, hashed with SHA-256 before storage
@@ -177,6 +214,17 @@ Last commit: `6f676d8` - Phase 10: SEO & Discovery.
 - `not-prose` class on carousel containers
 
 ## Files to Remember
+
+### Search & Discovery (Phase 12)
+- src/services/search/search-types.ts
+- src/services/search/mongodb-search-provider.ts
+- src/services/search/search-provider.ts
+- src/services/search-service.ts
+- src/app/api/search/route.ts
+- src/components/features/public/SearchBar.tsx
+- src/components/features/public/SearchResults.tsx
+- src/app/(public)/search/page.tsx
+- src/__tests__/services/search-service.test.ts
 
 ### User Management (Phase 14)
 - src/utils/tokens.ts

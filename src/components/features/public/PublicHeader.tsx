@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import SearchBar from './SearchBar';
 
 export interface NavLink {
   label: string;
@@ -17,7 +18,7 @@ interface PublicHeaderProps {
 /**
  * PublicHeader - Client component for the public site navigation.
  * Renders navigation links from the default NavigationMenu.
- * Includes mobile-responsive hamburger menu.
+ * Includes mobile-responsive hamburger menu and search bar.
  */
 export default function PublicHeader({ links, siteTitle = 'CMS' }: PublicHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -53,6 +54,10 @@ export default function PublicHeader({ links, siteTitle = 'CMS' }: PublicHeaderP
                 {link.label}
               </Link>
             ))}
+            {/* Search Bar */}
+            <div className="w-48">
+              <SearchBar placeholder="Search..." />
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
@@ -100,6 +105,10 @@ export default function PublicHeader({ links, siteTitle = 'CMS' }: PublicHeaderP
                   {link.label}
                 </Link>
               ))}
+              {/* Search Bar */}
+              <div className="px-4 py-2">
+                <SearchBar placeholder="Search..." />
+              </div>
             </div>
           </div>
         )}

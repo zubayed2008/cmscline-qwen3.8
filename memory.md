@@ -15,6 +15,7 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 **Phase 8: TipTap Rich Text Editor - COMPLETED**
 **Phase 9: Media Upload with Cloudinary - COMPLETED**
 **Phase 10: SEO & Discovery - COMPLETED**
+**Phase 12: Search & Discovery - COMPLETED**
 **Phase 14: User Management - COMPLETED**
 
 ## Tech Stack
@@ -52,6 +53,19 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 ```
 
 ## Key Features Implemented
+
+### Phase 12: Search & Discovery
+- `src/services/search/search-types.ts` - Search provider type definitions (ISearchProvider, SearchResult, SearchQuery, SearchResponse)
+- `src/services/search/mongodb-search-provider.ts` - MongoDB Text Index search provider
+- `src/services/search/search-provider.ts` - Search provider factory (getSearchProvider)
+- `src/services/search-service.ts` - Search service (search, searchPages, searchBlogs, searchAll)
+- `src/app/api/search/route.ts` - GET /api/search endpoint with Zod validation
+- `src/components/features/public/SearchBar.tsx` - Client component search input
+- `src/components/features/public/SearchResults.tsx` - Server component results display
+- `src/app/(public)/search/page.tsx` - Search results page
+- Text indexes added to page and blog models
+- SearchBar integrated into PublicHeader (desktop + mobile)
+- Configurable via SEARCH_PROVIDER env var (mongodb, elasticsearch, meilisearch)
 
 ### Phase 14: User Management
 - `src/utils/tokens.ts` - Token generation utility (crypto-based, hashed storage)
@@ -119,6 +133,7 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 - `CLOUDINARY_API_SECRET` - Cloudinary API secret
 - `CLOUDINARY_FOLDER` - Default upload folder
 - `IMAGE_OPTIMIZATION_QUALITY` - Image quality
+- `SEARCH_PROVIDER` - Search backend (mongodb, elasticsearch, meilisearch)
 - `SMTP_HOST` - SMTP server hostname
 - `SMTP_PORT` - SMTP server port
 - `SMTP_USER` - SMTP authentication username
@@ -132,13 +147,23 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 4. **Email Verification:** ✅ New users require email verification
 5. **Password Reset:** ✅ Users can reset passwords via email link
 6. **Profile Security:** ✅ Current password required for email/password changes
+7. **Search Provider:** ✅ Configurable via SEARCH_PROVIDER env var (MongoDB Text Index default)
+8. **Active Content Search:** ✅ Search only returns active pages/blogs
+9. **Relevance Sorting:** ✅ Results sorted by MongoDB textScore
 
 ## Next Steps
 - Phase 5.5: Playwright E2E testing (not yet done)
+- Phase 8: E2E Testing with Playwright
+- Phase 11: Advanced Content Management (Versioning, Scheduling, Workflow)
+- Phase 13: Security & Performance (Rate Limiting, Audit Logging, Redis Caching)
+- Phase 15: Internationalization (i18n)
+- Phase 16: API & Documentation (Swagger/OpenAPI)
+- Phase 17: Deployment & Infrastructure (Docker)
 - Production deployment preparation
 - Additional SEO features (dynamic OG images, breadcrumbs, FAQ schema)
-- Rate limiting for auth endpoints (Phase 13.1)
-- Audit logging for auth events (Phase 13.2)
+- Search suggestions/autocomplete
+- Search result highlighting
+- Elasticsearch/Meilisearch providers
 
 ## Important Notes
 - All models use `{ timestamps: true }` for createdAt/updatedAt
@@ -149,3 +174,5 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 - Seed command: `npm run seed`
 - Tokens are hashed (SHA-256) before database storage
 - Forgot-password endpoint prevents user enumeration
+- MongoDB only allows ONE text index per collection
+- Search provider abstraction mirrors storage provider pattern

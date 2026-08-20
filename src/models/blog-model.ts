@@ -25,6 +25,10 @@ const blogSchema = new Schema<IBlog>(
   { timestamps: true }
 );
 
+// Text index for full-text search (Phase 12: Search & Discovery)
+// MongoDB only allows ONE text index per collection
+blogSchema.index({ title: 'text', content: 'text' });
+
 const Blog: Model<IBlog> = mongoose.models.Blog || mongoose.model<IBlog>('Blog', blogSchema);
 
 export default Blog;

@@ -21,6 +21,10 @@ const pageSchema = new Schema<IPage>(
   { timestamps: true }
 );
 
+// Text index for full-text search (Phase 12: Search & Discovery)
+// MongoDB only allows ONE text index per collection
+pageSchema.index({ title: 'text', content: 'text' });
+
 const Page: Model<IPage> = mongoose.models.Page || mongoose.model<IPage>('Page', pageSchema);
 
 export default Page;
