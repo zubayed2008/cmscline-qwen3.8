@@ -3,8 +3,14 @@
 ## Project Overview
 Enterprise CMS built with Next.js 16.3.1 App Router, MongoDB/Mongoose, TypeScript.
 
+## ⚠️ IMPORTANT: User Preferences
+- **DO NOT commit or push** unless explicitly instructed by the user.
+
 ## Current State
-Last commit: `cace3f8` - TipTap rich text editor with carousel and media embedding.
+Last commit: `29ca19c` - Fix RangeError: Maximum call stack size exceeded on admin pages.
+
+### Recent Fixes (not committed):
+- Fixed circular reference in `src/app/(public)/page.tsx` - Mongoose subdocument `navMenu?.siteInfo` was being passed directly to `ContactSection` client component. Now explicitly extracts only serializable properties (address, phone, email).
 
 ## Implementation Status
 

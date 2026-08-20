@@ -41,6 +41,16 @@ export default async function HomePage() {
     imageOrIconUrl: item.imageOrIconUrl,
   }));
 
+  // Extract only serializable properties from Mongoose documents to avoid
+  // circular reference issues when passing from Server to Client Components
+  const siteInfoProps = navMenu?.siteInfo
+    ? {
+        address: navMenu.siteInfo.address ?? undefined,
+        phone: navMenu.siteInfo.phone ?? undefined,
+        email: navMenu.siteInfo.email ?? undefined,
+      }
+    : undefined;
+
   return (
     <div>
       {/* Hero Carousel */}
@@ -78,10 +88,10 @@ export default async function HomePage() {
       )}
 
       {/* Contact Section */}
-      <ContactSection siteInfo={navMenu?.siteInfo} />
+      <ContactSection siteInfo={siteInfoProps} />
 
       {/* Map Location */}
-      {navMenu?.siteInfo?.address && <MapLocation address={navMenu.siteInfo.address} />}
+      {siteInfoProps?.address && <MapLocation address={siteInfoProps.address} />}
     </div>
   );
 }
