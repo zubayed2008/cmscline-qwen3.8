@@ -5,6 +5,7 @@ import BlogService from '@/services/blog-service';
 import UserService from '@/services/user-service';
 import ContactService from '@/services/contact-service';
 import { requireAdmin } from '@/utils/auth';
+import AnalyticsDashboard from '@/components/features/admin/AnalyticsDashboard';
 
 export const dynamic = 'force-dynamic';
 
@@ -108,6 +109,16 @@ export default async function AdminDashboardPage() {
           </CardBody>
         </Card>
       )}
+
+      {/* Analytics Section */}
+      <Card className="mt-6">
+        <CardHeader>
+          <h2 className="text-lg font-semibold text-gray-900">Analytics</h2>
+        </CardHeader>
+        <CardBody>
+          <AnalyticsDashboard />
+        </CardBody>
+      </Card>
     </div>
   );
 }

@@ -221,20 +221,49 @@ export async function getPageviews(
       | { data: UmamiPageviewData[] }
     >(`/api/websites/${websiteId}/pageviews?startAt=${start}&endAt=${end}&unit=day`);
 
-    // Handle different response formats
+    // Extract pageviews array from different response formats
+    let rawPageviews: UmamiPageviewData[] = [];
     if (Array.isArray(result)) {
-      return result;
-    }
-    if (result && typeof result === 'object') {
+      rawPageviews = result;
+    } else if (result && typeof result === 'object') {
       // Umami API v2 returns { pageviews: [...], sessions: [...] }
       if ('pageviews' in result) {
-        return result.pageviews || [];
-      }
-      if ('data' in result) {
-        return result.data || [];
+        rawPageviews = result.pageviews || [];
+      } else if ('data' in result) {
+        rawPageviews = result.data || [];
       }
     }
-    return [];
+
+    // Fill in missing dates with 0 values
+    // Generate all dates in the range and map existing data to them
+    const pageviewMap = new Map<string, number>();
+    for (const item of rawPageviews) {
+      // Normalize the date key to YYYY-MM-DD format for consistent lookup
+      const dateKey = item.x.split('T')[0];
+      pageviewMap.set(dateKey, item.y);
+    }
+
+    // Generate complete date range from startDate to endDate
+    const filledPageviews: UmamiPageviewData[] = [];
+    const currentDate = new Date(startDate);
+    // Set to start of day (UTC) for consistent comparison
+    currentDate.setUTCHours(0, 0, 0, 0);
+
+    const endDateUtc = new Date(endDate);
+    endDateUtc.setUTCHours(23, 59, 59, 999);
+
+    while (currentDate <= endDateUtc) {
+      const dateKey = currentDate.toISOString().split('T')[0];
+      const views = pageviewMap.get(dateKey) ?? 0;
+      filledPageviews.push({
+        x: currentDate.toISOString(),
+        y: views,
+      });
+      // Move to next day
+      currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+    }
+
+    return filledPageviews;
   } catch (error) {
     console.error('[Umami Service] Failed to fetch pageviews:', error);
     return [];
