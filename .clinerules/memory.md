@@ -13,12 +13,13 @@ Enterprise CMS built with Next.js 16.3.1 App Router, MongoDB/Mongoose, TypeScrip
 4. PARAMETER ACCURACY: Do not hallucinate tool parameters. If a required parameter is missing from the context, ask the user for it instead of guessing.
 5. STEP-BY-STEP: If a task requires multiple tool calls, think step-by-step internally, but execute only one tool call at a time and wait for the result.
 
+
 ## STRICT FILE OPERATION RULES ##
-1. NO CODE TRUNCATION: When writing or replacing code in a file, you MUST write the COMPLETE, FULL code. NEVER use placeholders like "// ... rest of the code", "// ... existing code", or "...". Write every single line.
-2. PREFER FULL WRITES FOR SMALL FILES: If a file is under 100 lines, ALWAYS use the `write_to_file` tool to rewrite the entire file rather than using `replace_in_file`. This prevents string-matching errors.
-3. EXACT MATCHING FOR REPLACEMENTS: If you MUST use `replace_in_file`, the `old_string` parameter must match the EXACT characters in the file, including all whitespace, indentation, and newlines. Do not guess the indentation.
-4. READ BEFORE WRITE: ALWAYS use the `read_file` tool to read the current contents of a file before attempting to modify it. Never guess the current state of a file.
-5. NO CONVERSATIONAL CODE: Do not include conversational text inside the `content` parameter of the `write_to_file` tool. The parameter must contain ONLY valid, executable code.
+1. USE CORRECT TOOLS: You ONLY have access to the following tools: `read_files`, `search_codebase`, `fetch_web_content`, `editor`, `ask_question`, `run_commands`. NEVER invent or use tool names like `write_to_file`, `replace_in_file`, or `create_file`. Use the `editor` tool for ALL file writing and editing.
+2. NO CODE TRUNCATION: When using the `editor` tool to write or replace code, you MUST write the COMPLETE, FULL code. NEVER use placeholders like "// ... rest of the code" or "...". Write every single line.
+3. READ BEFORE WRITE: ALWAYS use the `read_files` tool to read the current contents of a file before attempting to modify it with the `editor` tool. Never guess the current state of a file.
+4. EXACT MATCHING: If you are replacing specific text using the `editor` tool, the old text must match the EXACT characters in the file, including all whitespace and indentation.
+5. NO CONVERSATIONAL CODE: The content parameters must contain ONLY valid, executable code. Do not include conversational text inside the code blocks.
 
 ## Current State
 Last commit: `e1e8ffc` - Phase 14: User Management.
