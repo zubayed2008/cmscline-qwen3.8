@@ -11,6 +11,18 @@ interface AdminHeaderProps {
   };
 }
 
+const handleSignOut = async () => {
+    // 1. Manually fire the audit log first
+    try {
+      await fetch('/api/audit-logs/logout', { method: 'POST' });
+    } catch (error) {
+      console.error('Failed to log audit event:', error);
+    }
+
+    // 2. Trigger the actual NextAuth sign-out to clear cookies and redirect
+    await signOut({ callbackUrl: '/admin/login' });
+  };
+
 export default function AdminHeader({ user }: AdminHeaderProps) {
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-10">
@@ -33,7 +45,7 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
           </div>
         </div>
         <button
-          onClick={() => signOut({ callbackUrl: '/admin/login' })}
+          onClick={handleSignOut}
           className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
         >
           <LogOut className="w-4 h-4" />

@@ -39,6 +39,15 @@ Last commit: `e1e8ffc` - Phase 14: User Management.
 - Build verified successfully with /admin/audit-logs and /api/audit-logs routes
 - All 161 tests pass (10 test suites)
 
+### Rate Limiting Integration:
+- Fixed `src/utils/rate-limit.ts` - LOGIN limit corrected to 10 per 15 minutes
+- Updated `src/app/api/auth/[...nextauth]/route.ts` - Added rate limiting to login POST endpoint (10 attempts per 15 minutes per IP)
+- Updated `src/app/api/contact/route.ts` - Added rate limiting to contact form POST endpoint (5 submissions per hour per IP)
+- Created `src/middleware.ts` - API rate limiting middleware (100 req/hour for GET, 1000 req/hour for POST/PUT/DELETE per IP)
+- Middleware exempts /api/auth/* and /api/contact/* (they have their own rate limiting)
+- Rate limit headers added to responses: X-RateLimit-Limit, X-RateLimit-Remaining
+- Fixed logout error "Failed to execute 'json' on 'Response'" - POST handler now only applies rate limiting to login attempts (callback URLs), signout requests pass through directly to NextAuth handler without interference
+
 ### Recent Work (Phase 12 - Search & Discovery):
 - Created `src/services/search/search-types.ts` - Search provider type definitions (ISearchProvider, SearchResult, SearchQuery, SearchResponse, SearchContentType)
 - Created `src/services/search/mongodb-search-provider.ts` - MongoDB Text Index search provider with relevance scoring

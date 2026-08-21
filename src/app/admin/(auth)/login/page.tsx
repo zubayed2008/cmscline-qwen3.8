@@ -31,14 +31,24 @@ function LoginForm() {
         redirect: false,
       });
 
-      if (result?.error) {
-        setError('Invalid email or password');
+      // NextAuth might return the error in `result.error` OR in `result.url` 
+      // if it triggered an internal error redirect despite `redirect: false`
+      const errorString = result?.error || result?.url || '';
+      const isRateLimited = errorString.includes('Too many login attempts');
+
+      if (result?.error || errorString.includes('/api/auth/error')) {
+        if (isRateLimited) {
+          setError('Too many login attempts. Please wait a few minutes before trying again.');
+        } else {
+          // Keep it generic for security reasons (prevents attackers from knowing if an email exists)
+          setError('Invalid email or password');
+        }
       } else {
         router.push(callbackUrl);
         router.refresh();
       }
     } catch {
-      setError('An error occurred. Please try again.');
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import dbConnect from '@/utils/db-connect';
 import User from '@/models/user-model';
+import { rateLimit, RATE_LIMIT_CONFIG } from '@/utils/rate-limit';
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -12,14 +13,29 @@ export const authOptions: AuthOptions = {
         email: { label: 'Email', type: 'email', placeholder: 'admin@example.com' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error('Email and password are required');
         }
 
+        // 1. RATE LIMITING INSIDE AUTHORIZE (Much safer and cleaner)
+        // Rate limiting by email prevents brute-force attacks even if the attacker rotates IPs.
+        const identifier = credentials.email.toLowerCase();
+        
+        const { success } = await rateLimit(
+          `login:${identifier}`,
+          RATE_LIMIT_CONFIG.LOGIN.limit,
+          RATE_LIMIT_CONFIG.LOGIN.window
+        );
+
+        if (!success) {
+          // NextAuth will automatically catch this and return a proper error to the client
+          throw new Error('Too many login attempts. Please try again later.');
+        }
+
         await dbConnect();
 
-        const user = await User.findOne({ email: credentials.email.toLowerCase() });
+        const user = await User.findOne({ email: identifier });
 
         if (!user || !user.isActive) {
           throw new Error('Invalid email or password');
@@ -68,6 +84,8 @@ export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
+// 2. STANDARD APP ROUTER EXPORTS
+// Do not wrap this in custom GET/POST functions. Let NextAuth handle routing natively.
 const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

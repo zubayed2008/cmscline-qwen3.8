@@ -3,7 +3,7 @@ import { LRUCache } from 'lru-cache';
 // Rate limit configuration
 const RATE_LIMIT_CONFIG = {
   CONTACT_FORM: { limit: 5, window: 60 * 60 * 1000 }, // 5 per hour
-  LOGIN: { limit: 1, window: 15 * 60 * 1000 },       // 10 per 15 minutes
+  LOGIN: { limit: 10, window: 15 * 60 * 1000 },       // 10 per 15 minutes
   API_PUBLIC: { limit: 100, window: 60 * 60 * 1000 },  // 100 per hour
   API_AUTHENTICATED: { limit: 1000, window: 60 * 60 * 1000 }, // 1000 per hour
 };
