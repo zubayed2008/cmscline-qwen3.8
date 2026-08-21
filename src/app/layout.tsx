@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { cookies } from 'next/headers';
 import './globals.css';
 import UmamiAnalytics from '@/components/UmamiAnalytics';
+import { getSupportedLocales } from '@/utils/i18n';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -66,9 +68,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default async function RootLayout({ children }: LayoutProps<'/'>) {
+  const cookieStore = await cookies();
+  const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value;
+  const supportedLocales = getSupportedLocales();
+  const lang =
+    cookieLocale && (supportedLocales as readonly string[]).includes(cookieLocale)
+      ? cookieLocale
+      : 'en';
+
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html
+      lang={lang}
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
       <body className="min-h-full flex flex-col">
         {children}
         <UmamiAnalytics />

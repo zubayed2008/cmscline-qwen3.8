@@ -14,6 +14,8 @@ A comprehensive Content Management System (CMS) built with Next.js App Router, M
 | bcryptjs | Password hashing |
 | Umami | Self-hosted analytics (Phase 7) |
 | Cloudinary | Cloud media storage and optimization (Phase 9) |
+| TipTap | Rich text editor (Phase 8) |
+| Jest | Unit testing |
 
 ## Project Structure
 
@@ -73,6 +75,24 @@ CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
 CLOUDINARY_FOLDER=cms
 IMAGE_OPTIMIZATION_QUALITY=80
+
+# Phase 10: SEO
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_NAME=Enterprise CMS
+NEXT_PUBLIC_SITE_DESCRIPTION=Enterprise CMS built with Next.js
+
+# Phase 12: Search
+SEARCH_PROVIDER=mongodb
+
+# Phase 14: Email (SMTP)
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=noreply@example.com
+SMTP_PASSWORD=your-password
+EMAIL_FROM=noreply@example.com
+
+# Phase 15: i18n
+NEXT_PUBLIC_DEFAULT_LOCALE=en
 ```
 
 > ⚠️ **Important:** Replace `NEXTAUTH_SECRET` with a secure random string.
@@ -222,9 +242,14 @@ const session = await requireAdmin();
 - ✅ **Phase 5:** Public Frontend
 - ✅ **Phase 6:** Polish & Seeding
 - ✅ **Phase 7:** Self-Hosted Analytics (Umami)
+- ✅ **Phase 8:** TipTap Rich Text Editor
 - ✅ **Phase 9:** Media Upload with Cloudinary
+- ✅ **Phase 10:** SEO & Discovery (sitemap, robots.txt, metadata)
+- ✅ **Phase 12:** Search & Discovery (MongoDB text search)
+- ✅ **Phase 14:** User Management (email verification, password reset, profile)
+- ✅ **Phase 15:** Internationalization (i18n)
 
-See `implement_phase_1.md` for detailed implementation notes.
+See the `implement_phase_*.md` files for detailed implementation notes.
 
 ## Scripts
 

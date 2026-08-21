@@ -12,14 +12,7 @@ interface AdminHeaderProps {
 }
 
 const handleSignOut = async () => {
-    // 1. Manually fire the audit log first
-    try {
-      await fetch('/api/audit-logs/logout', { method: 'POST' });
-    } catch (error) {
-      console.error('Failed to log audit event:', error);
-    }
-
-    // 2. Trigger the actual NextAuth sign-out to clear cookies and redirect
+    // NextAuth events.signOut handles the logout audit log automatically
     await signOut({ callbackUrl: '/admin/login' });
   };
 

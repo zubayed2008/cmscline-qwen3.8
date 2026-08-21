@@ -17,6 +17,7 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 **Phase 10: SEO & Discovery - COMPLETED**
 **Phase 12: Search & Discovery - COMPLETED**
 **Phase 14: User Management - COMPLETED**
+**Phase 15: Internationalization (i18n) - COMPLETED**
 
 ## Tech Stack
 - **Framework:** Next.js 16.3.1 (App Router, Turbopack)
@@ -85,6 +86,20 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 - Profile link in admin sidebar
 - Forgot password link on login page
 
+### Phase 15: Internationalization (i18n)
+- `src/utils/i18n.ts` - i18n utility (getLocale, setLocale, t, getTranslations, formatDate, formatNumber, formatCurrency, extractLocaleFromPath, hasLocalePrefix, getSupportedLocales)
+- `src/locales/{en,es,fr}/common.json` - Translation files for English, Spanish, French (namespaces: common, navigation, footer, meta, ui)
+- `src/proxy.ts` - Next.js 16 proxy (formerly middleware): locale detection merged with existing rate limiting
+- `src/app/api/i18n/route.ts` - GET /api/i18n endpoint to switch locale (sets cookie, redirects back)
+- `src/components/providers/LocaleProvider.tsx` - Client context provider + useLocale/useLocaleText hooks
+- `src/hooks/useLocale.ts` - Re-exports hooks from LocaleProvider (single source of truth)
+- `src/components/features/public/LanguageSwitcher.tsx` - Client language dropdown
+- `src/components/features/public/PublicHeader.tsx` - LanguageSwitcher wired into desktop + mobile nav
+- `src/app/layout.tsx` - Dynamic `<html lang>` from NEXT_LOCALE cookie; restored Geist font variables
+- `src/app/(public)/layout.tsx` - Passes currentLocale to PublicHeader
+- Locale detection priority: NEXT_LOCALE cookie → Accept-Language header → default locale
+- Next.js 16 uses `proxy.ts` (NOT middleware.tsx) for server-side logic
+
 ### Phase 10: SEO & Discovery
 - `src/utils/seo.ts` - SEO utility functions (generateExcerpt, generateCanonicalUrl, generateOgImageUrl, formatSeoDate, generatePageTitle, sanitizeSlug, generateBlogStructuredData, generatePageStructuredData)
 - `src/components/features/seo/StructuredData.tsx` - JSON-LD structured data component
@@ -139,6 +154,7 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 - `SMTP_USER` - SMTP authentication username
 - `SMTP_PASSWORD` - SMTP authentication password
 - `EMAIL_FROM` - From address for outgoing emails
+- `NEXT_PUBLIC_DEFAULT_LOCALE` - Default locale for i18n (fallback `en`)
 
 ## Business Rules Implemented
 1. **Single Default Rule:** ✅ Implemented in PageService and NavigationService
@@ -156,7 +172,6 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 - Phase 8: E2E Testing with Playwright
 - Phase 11: Advanced Content Management (Versioning, Scheduling, Workflow)
 - Phase 13: Security & Performance (Rate Limiting, Audit Logging, Redis Caching)
-- Phase 15: Internationalization (i18n)
 - Phase 16: API & Documentation (Swagger/OpenAPI)
 - Phase 17: Deployment & Infrastructure (Docker)
 - Production deployment preparation
@@ -176,3 +191,5 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 - Forgot-password endpoint prevents user enumeration
 - MongoDB only allows ONE text index per collection
 - Search provider abstraction mirrors storage provider pattern
+- Next.js 16 uses `src/proxy.ts` (formerly middleware); locale detection runs there for pages and rate limiting for API routes
+- i18n locale resolution priority: NEXT_LOCALE cookie → Accept-Language header → default locale
