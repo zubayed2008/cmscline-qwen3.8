@@ -24,6 +24,21 @@ Enterprise CMS built with Next.js 16.3.1 App Router, MongoDB/Mongoose, TypeScrip
 ## Current State
 Last commit: `e1e8ffc` - Phase 14: User Management.
 
+### Recent Work (Phase 13.2 - Audit Logging & Optional Redis Caching):
+- Created `src/models/audit-log-model.ts` - Audit log schema with action, entityType, entityId, userId, changes, ipAddress, userAgent fields
+- Created `src/services/audit-service.ts` - Audit service (createAuditLog, getAuditLogs, getEntityAuditLogs, getUserAuditLogs, getRecentAuditLogs, getAuditStats, deleteOldAuditLogs)
+- Created `src/utils/audit-middleware.ts` - Request context extraction (getClientIp, getUserAgent, createAuditLogFromRequest, createLoginAuditLog, createLogoutAuditLog, extractChanges)
+- Created `src/utils/audit-watcher.ts` - Mongoose middleware for automatic audit logging on create/update/delete operations
+- Created `src/utils/cache.ts` - Optional Redis caching layer with in-memory fallback (isRedisEnabled, getRedisClient, getCache, CacheKeys, CacheTTL, invalidateCache)
+- Created `src/app/api/audit-logs/route.ts` - GET/DELETE /api/audit-logs endpoints (admin only)
+- Created `src/app/admin/(dashboard)/audit-logs/page.tsx` - Admin audit logs page with stats cards
+- Created `src/app/admin/(dashboard)/audit-logs/_components/AuditLogsClient.tsx` - Client component with filters, table, pagination, and expandable details
+- Updated `src/components/features/admin/AdminSidebar.tsx` - Added Audit Logs link with ClipboardList icon
+- Updated `src/models/index.ts` - Added AuditLog export
+- Added environment variables: ENABLE_REDIS, REDIS_URL, RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX_REQUESTS
+- Build verified successfully with /admin/audit-logs and /api/audit-logs routes
+- All 161 tests pass (10 test suites)
+
 ### Recent Work (Phase 12 - Search & Discovery):
 - Created `src/services/search/search-types.ts` - Search provider type definitions (ISearchProvider, SearchResult, SearchQuery, SearchResponse, SearchContentType)
 - Created `src/services/search/mongodb-search-provider.ts` - MongoDB Text Index search provider with relevance scoring

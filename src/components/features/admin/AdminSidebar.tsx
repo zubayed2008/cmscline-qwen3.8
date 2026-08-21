@@ -15,6 +15,7 @@ import {
   Users,
   Mail,
   UserCircle,
+  ClipboardList,
 } from 'lucide-react';
 
 // Categorized navigation items with lucide icons
@@ -53,6 +54,7 @@ const navCategories = [
     items: [
       { href: '/admin/users', label: 'Users', icon: Users },
       { href: '/admin/contact-submissions', label: 'Inbox', icon: Mail },
+      { href: '/admin/audit-logs', label: 'Audit Logs', icon: ClipboardList },
     ],
   },
   {

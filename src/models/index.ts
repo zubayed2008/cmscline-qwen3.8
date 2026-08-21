@@ -27,3 +27,6 @@ export type { IServiceItem } from './service-item-model';
 
 export { default as ContactSubmission } from './contact-submission-model';
 export type { IContactSubmission } from './contact-submission-model';
+
+export { default as AuditLog } from './audit-log-model';
+export type { IAuditLog, AuditAction } from './audit-log-model';

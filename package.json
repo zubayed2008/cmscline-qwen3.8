@@ -24,6 +24,8 @@
     "@tiptap/starter-kit": "^3.30.2",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.1",
+    "ioredis": "^6.0.0",
+    "lru-cache": "^11.5.2",
     "lucide-react": "^1.33.0",
     "mongoose": "^9.9.3",
     "next": "16.3.1",
