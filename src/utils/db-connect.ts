@@ -1,4 +1,9 @@
 import mongoose from 'mongoose';
+import { auditPlugin } from '@/utils/audit-plugin';
+
+// Register the plugin globally so it automatically applies to ALL current and future models.
+// It must be placed here, outside the dbConnect function, before models are compiled.
+mongoose.plugin(auditPlugin);
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/cms';
 

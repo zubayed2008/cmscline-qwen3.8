@@ -8,6 +8,7 @@ import {
   handleValidationError,
   handleError,
 } from '@/utils/api-response';
+import { withAudit } from '@/utils/audit-context';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * PUT /api/pages/[id]
  * Updates a page by ID. Requires authentication.
  */
-export async function PUT(request: NextRequest, { params }: RouteParams) {
+export const PUT = withAudit(async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     await requireAdmin();
 
@@ -64,13 +65,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
     return handleValidationError(error);
   }
-}
+});
 
 /**
  * DELETE /api/pages/[id]
  * Deletes a page by ID. Requires authentication.
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export const DELETE = withAudit(async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     await requireAdmin();
 
@@ -85,4 +86,4 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     return handleError(error);
   }
-}
+});
