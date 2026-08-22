@@ -14,7 +14,12 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "seed": "ts-node --project tsconfig.seed.json scripts/seed.ts",
-    "migrate:i18n-indexes": "ts-node --project tsconfig.seed.json scripts/migrate-i18n-indexes.ts"
+    "migrate:i18n-indexes": "ts-node --project tsconfig.seed.json scripts/migrate-i18n-indexes.ts",
+    "db:accounting:generate": "drizzle-kit generate",
+    "db:accounting:migrate": "drizzle-kit migrate",
+    "db:accounting:studio": "drizzle-kit studio",
+    "db:accounting:create": "docker compose -f docker-compose.umami.yml exec -T umami-db psql -U umami -d umami -v ON_ERROR_STOP=1 -c \"CREATE ROLE cms_accounting LOGIN PASSWORD 'change-me-accounting'\" -c \"SELECT 'CREATE DATABASE cms_accounting OWNER cms_accounting' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'cms_accounting')\\gexec\"",
+    "db:accounting:drop": "docker compose -f docker-compose.umami.yml exec -T umami-db psql -U umami -d umami -c \"DROP DATABASE IF EXISTS cms_accounting\" -c \"DROP ROLE IF EXISTS cms_accounting\""
   },
   "dependencies": {
     "@tiptap/extension-image": "^3.30.2",
@@ -25,6 +30,8 @@
     "@tiptap/starter-kit": "^3.30.2",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.1",
+    "decimal.js": "^10.6.0",
+    "drizzle-orm": "^0.45.2",
     "ioredis": "^6.0.0",
     "lru-cache": "^11.5.2",
     "lucide-react": "^1.33.0",
@@ -33,6 +40,7 @@
     "next-auth": "^4.24.15",
     "node-html-parser": "^9.0.1",
     "nodemailer": "^7.0.13",
+    "pg": "^8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "zod": "^4.4.3"
@@ -43,8 +51,10 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^20.19.43",
     "@types/nodemailer": "^8.0.1",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
     "jest": "^30.4.2",

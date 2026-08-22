@@ -210,3 +210,18 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 - i18n locale resolution priority: NEXT_LOCALE cookie → Accept-Language header → default locale
 - Content translation fallback rule: translations[locale].field → original base field (per field, never fails)
 - Run `npm run migrate:i18n-indexes` ONCE on any existing database after pulling Phase 15.5 (swaps old text index for the Bangla-aware one; idempotent)
+
+## Phase 18 - Accounting Engine (PostgreSQL + Drizzle) - PART 1 COMPLETE
+Implementation per `implementation_plan.md` (7-part delivery) and `ACCOUNTING-IMPLEMENTATION-SPEC.md`.
+- **Part 1 (Infrastructure & Foundation) DONE**: dedicated `cms_accounting` PostgreSQL database on the umami-db container (compose now exposes 5432, mounts `docker/postgres-init/`, healthcheck added)
+- `src/db/schema/accounting/enums.ts` - pgEnums whose value tuples MIRROR `src/types/accounting-types.ts` unions via compile-time `ENUM_UNION_GUARDS`; PAYMENT_STATUS v1 = ['COMPLETED'] (spec §12.1)
+- `src/db/schema/accounting/foundation.ts` - accounts (self-FK parent_id SET NULL, unique code, CHECK normal_balance↔type), accounting_periods (unique year+period, CHECK date range), document_counters (composite docType+year)
+- Migration `drizzle/accounting/0000_minor_machine_man.sql` generated via `npm run db:accounting:generate` (drizzle.config.ts, schema barrel index.ts)
+- `src/db/pg-client.ts` - pooled Drizzle singleton mirroring dbConnect HMR cache pattern; getAccountingDb/getAccountingClient/closeAccountingPool; requires ACCOUNTING_DATABASE_URL outside tests
+- `src/utils/money.ts` - decimal.js wrapper; ALL money is fixed 2-dp STRINGS; parseMoney rejects >2dp; add/subtract/multiply/compare/sum + MoneyFormatError
+- `src/utils/accounting-errors.ts` - typed errors (Conflict/Validation/NotFound/PeriodClosed/UnbalancedEntry) + mapPgError translating SQLSTATE 23505/23503/23514/22P02/40001/40P01
+- `src/types/accounting-types.ts` - all domain unions + AR/AP payload contracts (CreateInvoiceInput, RecordPaymentInput, CustomerStatementResponse, VendorStatementResponse)
+- npm scripts: db:accounting:generate / migrate / studio / create / drop; env: ACCOUNTING_DATABASE_URL, ACCOUNTING_BASE_CURRENCY (.env + .env.local)
+- Tests: `src/__tests__/utils/money.test.ts` (20) + `accounting-errors.test.ts` (16); suite total 233/233 across 14 suites; tsc clean; ESLint clean; production build OK
+- **DEFERRED live gate**: Docker CLI unavailable on this machine - user must run once when Docker Desktop is up: `docker compose -f docker-compose.umami.yml up -d`, then `npm run db:accounting:create`, then `npm run db:accounting:migrate`
+- Mongo/Mongoose code untouched; Next Part: Part 2 (journal service + transactions + opening balances)

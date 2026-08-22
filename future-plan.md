@@ -861,10 +861,12 @@ volumes:
 ### Approved Design Decisions (owner-signed)
 | Decision | Value |
 |---|---|
-| Atomicity | MongoDB multi-document transactions when replica set available; graceful non-transactional fallback locally (documented spec deviation, gated by `REQUIRE_DB_TRANSACTIONS`) |
+| Database / ORM | PostgreSQL 15 — dedicated `cms_accounting` database on the existing `umami-db` container; **Drizzle ORM** + `pg` driver; drizzle-kit migrations committed to the repo |
+| Atomicity | Native PostgreSQL transactions (`db.transaction`) via `withFinancialTransaction` — no fallback flag; `REQUIRE_DB_TRANSACTIONS` removed |
 | Journal lifecycle | Full: DRAFT → PENDING_APPROVAL → APPROVED → POSTED → REVERSED (posted = immutable) |
 | Corrections | Reversal/contra entries only — never edit or delete posted records |
-| Monetary storage | Decimal128 everywhere; JS floats prohibited; scale 2, half-up rounding via centralized money utility |
+| Monetary storage | Postgres `NUMERIC(18,2)` (Drizzle string mode); decimal.js for arithmetic; scale 2, half-up rounding via centralized money utility; JS floats prohibited |
+| Cross-DB references | Mongo `User` ids stored as `text` columns + `createdByName` snapshot (no cross-database FK/joins); audit trail reuses the existing Mongo `AuditService` |
 | Tax | Simple tax-exclusive v1: per-line `%` rate, computed amount, seeded `2200 Tax Payable` account |
 | Basis / Currency | Accrual · single base currency via `ACCOUNTING_BASE_CURRENCY` (default `USD`) |
 | Fiscal periods | Calendar-year, 12 monthly periods, seeded OPEN; closing/reopening audited |
@@ -876,8 +878,8 @@ volumes:
 ### Build Parts (implemented & verified sequentially, one at a time)
 | Part | Scope |
 |---|---|
-| 1 | Foundation: money utils, ApiError codes, models (Account, AccountingPeriod, DocumentCounter), counter & period services, CoA + fiscal-year seed |
-| 2 | Journal engine: JournalEntry/Posting models, full state machine, balanced-posting validation, transactional post/reverse, ledger query API |
+| 1 | Foundation & Infra: Drizzle/pg setup, `cms_accounting` DB provisioning (compose + init SQL), pg-client singleton, money utils, ApiError codes, PG schema (accounts, accounting_periods, document_counters) + migration 0001, counter/period/account services, CoA + fiscal-year seed |
+| 2 | Journal engine: journal_entries/postings/idempotency_records schema + migration, full state machine, balanced-posting validation, transactional post/reverse, idempotency service, ledger query API |
 | 3 | Accounts Receivable: customers, invoices (issue/cancel), payments with multi-invoice allocations |
 | 4 | Accounts Payable: vendors, bills (approve/post/cancel), vendor payments |
 | 5 | Reporting: General Ledger, Trial Balance, P&L, Balance Sheet, AR/AP aging |
@@ -886,20 +888,24 @@ volumes:
 
 ### Files (summary)
 ```
-src/models/accounting/*.ts                     # 10 schemas (account, period, journal-entry, posting, ...)
-src/services/accounting/*.ts                   # 10 services (journal, invoice, payment, report, ...)
+drizzle.config.ts                              # Drizzle Kit config (schema, out, dialect)
+drizzle/                                       # generated SQL migrations (committed to repo)
+src/db/pg-client.ts                            # pg Pool + Drizzle singleton (ACCOUNTING_DATABASE_URL)
+src/db/schema/accounting/*.ts                  # 11 tables (accounts, periods, counters, journal, postings, ...)
+src/services/accounting/*.ts                   # 11 services + repositories (journal, invoice, payment, report, ...)
 src/app/api/accounting/**                      # accounts, periods, journal-entries, ledger, reports
 src/app/api/{invoices,payments,vendors,bills}/**  # spec §22 endpoint layout
 src/app/admin/(dashboard)/accounting/**        # admin screens
 src/components/features/admin/accounting/**    # feature components
-src/utils/accounting/{money,api-error,with-accounting-transaction}.ts
-src/types/accounting-schemas.ts                # Zod contracts (money as strings, never JSON numbers)
-scripts/seed-chart-of-accounts.ts              # npm run seed:accounting
-src/__tests__/services/accounting/*.test.ts    # spec §31 invariant suite
+src/utils/accounting/{money,accounting-error,with-accounting-transaction}.ts
+src/types/{accounting-types,accounting-schemas}.ts  # domain unions + Zod contracts (money as strings)
+docker/postgres-init/01-create-accounting-db.sql    # creates cms_accounting DB + role (fresh volumes)
+scripts/{migrate-accounting,seed-accounting}.ts     # npm run db:migrate / npm run seed:accounting
+src/__tests__/services/accounting/*.test.ts    # spec §31 invariant suite (repo-mocked) + *.int.test.ts (live DB)
 ```
 
-**New dependency:** `decimal.js` (precise arithmetic bridging Decimal128; no other packages needed).
-**New env:** `ACCOUNTING_BASE_CURRENCY=USD`, `REQUIRE_DB_TRANSACTIONS=false`.
+**New dependencies:** `drizzle-orm` + `pg` (runtime), `drizzle-kit` + `@types/pg` (dev); `decimal.js` for arithmetic (already installed). No other packages.
+**New env:** `ACCOUNTING_DATABASE_URL=postgresql://cms_accounting:<secret>@localhost:5432/cms_accounting`, `ACCOUNTING_BASE_CURRENCY=USD`.
 
 ---
 
@@ -983,9 +989,9 @@ EMAIL_FROM=noreply@example.com
 # Phase 15: i18n
 NEXT_PUBLIC_DEFAULT_LOCALE=en
 
-# Phase 18: Accounting
+# Phase 18: Accounting (PostgreSQL via Drizzle)
+ACCOUNTING_DATABASE_URL=postgresql://cms_accounting:secret@localhost:5432/cms_accounting
 ACCOUNTING_BASE_CURRENCY=USD
-REQUIRE_DB_TRANSACTIONS=false
 ```
 
 ---
@@ -1003,13 +1009,17 @@ REQUIRE_DB_TRANSACTIONS=false
     "nodemailer": "^6.9.7",
     "multer": "^1.4.5-lts.1",
     "sharp": "^0.33.1",
-    "decimal.js": "^10.4.3"
+    "decimal.js": "^10.6.0",
+    "drizzle-orm": "^0.44.2",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "@types/multer": "^1.4.11",
     "@types/nodemailer": "^6.4.14",
     "@types/swagger-ui-react": "^4.18.3",
-    "@types/swagger-jsdoc": "^6.0.4"
+    "@types/swagger-jsdoc": "^6.0.4",
+    "drizzle-kit": "^0.31.5",
+    "@types/pg": "^8.15.4"
   }
 }
 ```

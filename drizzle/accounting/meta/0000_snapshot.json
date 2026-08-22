@@ -1,0 +1,449 @@
+{
+  "id": "ad769350-dc34-46ec-ba91-8a62b5d63ebb",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.accounting_periods": {
+      "name": "accounting_periods",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "fiscal_year": {
+          "name": "fiscal_year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "period_number": {
+          "name": "period_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "period_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'OPEN'"
+        },
+        "closed_by": {
+          "name": "closed_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "closed_at": {
+          "name": "closed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "accounting_periods_year_number_unique": {
+          "name": "accounting_periods_year_number_unique",
+          "columns": [
+            {
+              "expression": "fiscal_year",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "period_number",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "accounting_periods_status_idx": {
+          "name": "accounting_periods_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "accounting_periods_date_range": {
+          "name": "accounting_periods_date_range",
+          "value": "\"accounting_periods\".\"end_date\" >= \"accounting_periods\".\"start_date\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.accounts": {
+      "name": "accounts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "code": {
+          "name": "code",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "account_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "normal_balance": {
+          "name": "normal_balance",
+          "type": "normal_balance",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "parent_id": {
+          "name": "parent_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_by_name": {
+          "name": "created_by_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "accounts_code_unique": {
+          "name": "accounts_code_unique",
+          "columns": [
+            {
+              "expression": "code",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "accounts_type_idx": {
+          "name": "accounts_type_idx",
+          "columns": [
+            {
+              "expression": "type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "accounts_parent_idx": {
+          "name": "accounts_parent_idx",
+          "columns": [
+            {
+              "expression": "parent_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "accounts_parent_id_accounts_id_fk": {
+          "name": "accounts_parent_id_accounts_id_fk",
+          "tableFrom": "accounts",
+          "tableTo": "accounts",
+          "columnsFrom": [
+            "parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "accounts_normal_balance_matches_type": {
+          "name": "accounts_normal_balance_matches_type",
+          "value": "(\n        (\"accounts\".\"type\" = 'Asset' AND \"accounts\".\"normal_balance\" = 'Debit') OR\n        (\"accounts\".\"type\" = 'Expense' AND \"accounts\".\"normal_balance\" = 'Debit') OR\n        (\"accounts\".\"type\" = 'Liability' AND \"accounts\".\"normal_balance\" = 'Credit') OR\n        (\"accounts\".\"type\" = 'Equity' AND \"accounts\".\"normal_balance\" = 'Credit') OR\n        (\"accounts\".\"type\" = 'Revenue' AND \"accounts\".\"normal_balance\" = 'Credit')\n      )"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.document_counters": {
+      "name": "document_counters",
+      "schema": "",
+      "columns": {
+        "doc_type": {
+          "name": "doc_type",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "year": {
+          "name": "year",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_number": {
+          "name": "last_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "document_counters_doc_type_year_pk": {
+          "name": "document_counters_doc_type_year_pk",
+          "columns": [
+            {
+              "expression": "doc_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "year",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.account_type": {
+      "name": "account_type",
+      "schema": "public",
+      "values": [
+        "Asset",
+        "Liability",
+        "Equity",
+        "Revenue",
+        "Expense"
+      ]
+    },
+    "public.bill_status": {
+      "name": "bill_status",
+      "schema": "public",
+      "values": [
+        "DRAFT",
+        "APPROVED",
+        "POSTED",
+        "PARTIALLY_PAID",
+        "PAID",
+        "CANCELLED"
+      ]
+    },
+    "public.invoice_status": {
+      "name": "invoice_status",
+      "schema": "public",
+      "values": [
+        "DRAFT",
+        "ISSUED",
+        "PARTIALLY_PAID",
+        "PAID",
+        "OVERDUE",
+        "CANCELLED",
+        "VOIDED"
+      ]
+    },
+    "public.journal_status": {
+      "name": "journal_status",
+      "schema": "public",
+      "values": [
+        "DRAFT",
+        "PENDING_APPROVAL",
+        "APPROVED",
+        "POSTED",
+        "REVERSED"
+      ]
+    },
+    "public.normal_balance": {
+      "name": "normal_balance",
+      "schema": "public",
+      "values": [
+        "Debit",
+        "Credit"
+      ]
+    },
+    "public.party_status": {
+      "name": "party_status",
+      "schema": "public",
+      "values": [
+        "ACTIVE",
+        "INACTIVE"
+      ]
+    },
+    "public.payment_status": {
+      "name": "payment_status",
+      "schema": "public",
+      "values": [
+        "COMPLETED"
+      ]
+    },
+    "public.payment_type": {
+      "name": "payment_type",
+      "schema": "public",
+      "values": [
+        "CUSTOMER",
+        "VENDOR"
+      ]
+    },
+    "public.period_status": {
+      "name": "period_status",
+      "schema": "public",
+      "values": [
+        "OPEN",
+        "CLOSED"
+      ]
+    },
+    "public.source_type": {
+      "name": "source_type",
+      "schema": "public",
+      "values": [
+        "MANUAL",
+        "OPENING_BALANCE",
+        "INVOICE",
+        "CUSTOMER_PAYMENT",
+        "VENDOR_BILL",
+        "VENDOR_PAYMENT"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
