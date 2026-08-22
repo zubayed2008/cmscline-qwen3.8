@@ -313,3 +313,99 @@ export interface IdempotencyRecord {
   expiresAt: IsoTimestampString;
 }
 
+// ---------------------------------------------------------------------------
+// Financial reporting payloads (Part 5)
+// ---------------------------------------------------------------------------
+
+/** One General Ledger posting line with its running account balance. */
+export interface ILedgerRow {
+  id: string;
+  entryDate: IsoDateString;
+  entryNumber: string;
+  memo: string | null;
+  accountId: string;
+  accountCode: string;
+  accountName: string;
+  debit: MoneyString;
+  credit: MoneyString;
+  /** Running balance AFTER this posting (signed: debit positive). */
+  balance: MoneyString;
+}
+
+export interface ITrialBalanceRow {
+  accountId: string;
+  code: string;
+  name: string;
+  type: AccountType;
+  /** Signed net (debit - credit). */
+  balance: MoneyString;
+  debit: MoneyString;
+  credit: MoneyString;
+}
+
+export interface ITrialBalance {
+  asOf: IsoDateString | null;
+  rows: ITrialBalanceRow[];
+  totalDebit: MoneyString;
+  totalCredit: MoneyString;
+  balanced: boolean;
+}
+
+export interface IProfitLossRow {
+  accountId: string;
+  code: string;
+  name: string;
+  /** Positive on the account's normal side (Revenue credited, Expense debited). */
+  amount: MoneyString;
+}
+
+export interface IProfitLoss {
+  from: IsoDateString;
+  to: IsoDateString;
+  revenues: IProfitLossRow[];
+  expenses: IProfitLossRow[];
+  totalRevenue: MoneyString;
+  totalExpenses: MoneyString;
+  netIncome: MoneyString;
+}
+
+export interface IBalanceSheetSection {
+  title: 'Assets' | 'Liabilities' | 'Equity';
+  rows: Array<{
+    accountId: string;
+    code: string;
+    name: string;
+    amount: MoneyString;
+  }>;
+  total: MoneyString;
+}
+
+export interface IBalanceSheet {
+  asOf: IsoDateString;
+  assets: IBalanceSheetSection;
+  liabilities: IBalanceSheetSection;
+  equity: IBalanceSheetSection;
+  totalAssets: MoneyString;
+  totalLiabilitiesEquity: MoneyString;
+  /** Current-year earnings ploughed into Equity (kept separate for display). */
+  netIncome: MoneyString;
+  balanced: boolean;
+  /** Non-null when Assets != Liabilities + Equity + NetIncome. */
+  warning: string | null;
+}
+
+/** Aging buckets are driven by days past due (spec §15.3). */
+export type AgingBucketKey = 'CURRENT' | '1-30' | '31-60' | '61-90' | '90+';
+
+export interface IAgingBucket {
+  bucket: AgingBucketKey;
+  amount: MoneyString;
+  documentCount: number;
+}
+
+export interface IAgingReport {
+  asOf: IsoDateString;
+  buckets: IAgingBucket[];
+  total: MoneyString;
+}
+

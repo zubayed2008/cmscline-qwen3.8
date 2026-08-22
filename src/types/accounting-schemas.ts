@@ -256,6 +256,28 @@ export const vendorPaymentCreateSchema = z.object({
   allocations: z.array(vendorPaymentAllocationSchema).optional(),
 });
 
+// ---------------------------------------------------------------------------
+// Financial reporting (Part 5)
+// ---------------------------------------------------------------------------
+
+/** General Ledger query contract - every filter is optional; paging is 1-based. */
+export const ledgerQuerySchema = z.object({
+  from: isoDateSchema.optional(),
+  to: isoDateSchema.optional(),
+  accountId: uuidSchema.optional(),
+  journalNumber: z.string().max(30).optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(200).optional().default(50),
+});
+
+/** AR/AP aging report - defaults `asOf` to today when omitted. */
+export const agingQuerySchema = z.object({
+  asOf: isoDateSchema.optional(),
+});
+
+export type LedgerQuerySchema = z.infer<typeof ledgerQuerySchema>;
+export type AgingQuerySchema = z.infer<typeof agingQuerySchema>;
+
 export type CustomerCreateSchema = z.infer<typeof customerCreateSchema>;
 export type CustomerUpdateSchema = z.infer<typeof customerUpdateSchema>;
 export type InvoiceCreateSchema = z.infer<typeof invoiceCreateSchema>;

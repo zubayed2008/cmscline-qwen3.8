@@ -239,4 +239,13 @@ Implementation per `implementation_plan.md` (7-part delivery) and `ACCOUNTING-IM
 - Bill unit tests (`bill-service.test.ts`) intentionally NOT written per user instruction ("do not perform unit test cases for now") - ask user to trigger later (Part 4 plan)
 - Gates green: `tsc --noEmit` ✓ · ESLint ✓ (0 problems on touched files) · **278/278 tests / 16 suites** ✓ · production build ✓
 - Migration `0003` committed to repo but NOT yet applied (Docker Desktop gate still deferred): compose up → `npm run db:accounting:create` → `npm run db:accounting:migrate` → seed → exercise AP flows live
-- Next Part: Part 5 (Financial Reporting - General Ledger, Trial Balance, P&L, Balance Sheet, AR/AP aging; report routes under `/api/accounting/`; skip ledger tests and ask later)
+### Phase 18 - PART 5 COMPLETE (Financial Reporting) - commit PENDING (not committed)
+- `src/services/accounting/ledger-service.ts` - `LedgerService`: `trialBalance(asOf?)` (per-account debit/credit sums + signed balance, ΣDr = ΣCr balanced flag), `profitLoss(from, to)` (Revenue credited / Expense debited on normal side + netIncome), `balanceSheet(asOf?)` (Assets/Liabilities/Equity sections + current-year net-income equity plug, `balanced`/`warning` when Assets ≠ Liab + Equity + NetIncome), `getGeneralLedger(filters)` (paginated POSTED postings + running balance + page totals), `arAging`/`apAging(asOf?)` (raw SQL CASE-WHEN buckets CURRENT/1-30/31-60/61-90/90+ by days past due)
+- Report types added to `src/types/accounting-types.ts`: ILedgerRow, ITrialBalanceRow, ITrialBalance, IProfitLossRow, IProfitLoss, IBalanceSheetSection, IBalanceSheet, AgingBucketKey, IAgingBucket, IAgingReport
+- Query schemas: `ledgerQuerySchema` (from/to/accountId/journalNumber/page/limit), `agingQuerySchema` (asOf) in `accounting-schemas.ts`
+- Six GET report routes (admin-only): `/api/accounting/ledger`, `/trial-balance`, `/profit-loss`, `/balance-sheet`, `/ar-aging`, `/ap-aging`
+- **Critical reporting invariant:** reports include `journal_entries.status IN ('POSTED','REVERSED')` — reversals are stored as POSTED while the original flips to REVERSED, so including both makes each reversed pair net to zero (a `status='POSTED'`-only filter would show phantom offsetting entries)
+- `ledger-service.test.ts` intentionally NOT written per user instruction ("do not perform unit test cases for now") - ask user to trigger later (Part 5 plan)
+- Gates green: `tsc --noEmit` ✓ · ESLint ✓ (0 errors on touched files) · **278/278 tests / 16 suites** ✓ · production build ✓ (all six report routes registered)
+- No schema/migration changes in Part 5 (reports are read-only aggregations)
+- Next Part: Part 6 (Admin UI - dashboard, accounts, journal entries, invoices + RecordPaymentModal, bills, customers, vendors, tabbed Reports, Periods; AdminSidebar "Financials" group; StatusBadge/MoneyDisplay)
