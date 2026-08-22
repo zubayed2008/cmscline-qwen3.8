@@ -852,6 +852,57 @@ volumes:
 
 ---
 
+## Phase 18: Core Financial Accounting Engine (Double-Entry)
+
+**Goal:** Embed a lightweight double-entry accounting engine into the CMS — Chart of Accounts, immutable journal entries & postings, AR invoicing and customer payments, AP vendor bills and payments, fiscal periods, financial reports, and an audit trail. ERP-grade mathematical integrity without ERP bloat. Single base currency.
+
+**Source documents:** `accounting-requirement.md` (BRD) · `ACCOUNTING-IMPLEMENTATION-SPEC.md` (implementation contract — authoritative for all accounting rules) · `implementation_plan.md` (file/function-level build plan, delivered part-by-part).
+
+### Approved Design Decisions (owner-signed)
+| Decision | Value |
+|---|---|
+| Atomicity | MongoDB multi-document transactions when replica set available; graceful non-transactional fallback locally (documented spec deviation, gated by `REQUIRE_DB_TRANSACTIONS`) |
+| Journal lifecycle | Full: DRAFT → PENDING_APPROVAL → APPROVED → POSTED → REVERSED (posted = immutable) |
+| Corrections | Reversal/contra entries only — never edit or delete posted records |
+| Monetary storage | Decimal128 everywhere; JS floats prohibited; scale 2, half-up rounding via centralized money utility |
+| Tax | Simple tax-exclusive v1: per-line `%` rate, computed amount, seeded `2200 Tax Payable` account |
+| Basis / Currency | Accrual · single base currency via `ACCOUNTING_BASE_CURRENCY` (default `USD`) |
+| Fiscal periods | Calendar-year, 12 monthly periods, seeded OPEN; closing/reopening audited |
+| Numbering | `JE|INV|PAY|BILL-YYYY-######` via atomic counters, annual reset, never reused |
+| Sub-ledgers | Shared AR (`1200`) / AP (`2100`) control accounts; `customerId`/`vendorId` stamped on postings |
+| Permissions | Admin-only enforcement now (`requireAdmin`); code organized around granular `ACCOUNTING_*` constants for later expansion |
+| Idempotency | `Idempotency-Key` supported on financial mutations; duplicate keys return the original result |
+
+### Build Parts (implemented & verified sequentially, one at a time)
+| Part | Scope |
+|---|---|
+| 1 | Foundation: money utils, ApiError codes, models (Account, AccountingPeriod, DocumentCounter), counter & period services, CoA + fiscal-year seed |
+| 2 | Journal engine: JournalEntry/Posting models, full state machine, balanced-posting validation, transactional post/reverse, ledger query API |
+| 3 | Accounts Receivable: customers, invoices (issue/cancel), payments with multi-invoice allocations |
+| 4 | Accounts Payable: vendors, bills (approve/post/cancel), vendor payments |
+| 5 | Reporting: General Ledger, Trial Balance, P&L, Balance Sheet, AR/AP aging |
+| 6 | Admin UI: accounting screens + "Financials" sidebar group |
+| 7 | Hardening: optimistic locking, idempotency-key wiring, full invariant test pass, acceptance checklist |
+
+### Files (summary)
+```
+src/models/accounting/*.ts                     # 10 schemas (account, period, journal-entry, posting, ...)
+src/services/accounting/*.ts                   # 10 services (journal, invoice, payment, report, ...)
+src/app/api/accounting/**                      # accounts, periods, journal-entries, ledger, reports
+src/app/api/{invoices,payments,vendors,bills}/**  # spec §22 endpoint layout
+src/app/admin/(dashboard)/accounting/**        # admin screens
+src/components/features/admin/accounting/**    # feature components
+src/utils/accounting/{money,api-error,with-accounting-transaction}.ts
+src/types/accounting-schemas.ts                # Zod contracts (money as strings, never JSON numbers)
+scripts/seed-chart-of-accounts.ts              # npm run seed:accounting
+src/__tests__/services/accounting/*.test.ts    # spec §31 invariant suite
+```
+
+**New dependency:** `decimal.js` (precise arithmetic bridging Decimal128; no other packages needed).
+**New env:** `ACCOUNTING_BASE_CURRENCY=USD`, `REQUIRE_DB_TRANSACTIONS=false`.
+
+---
+
 ## Implementation Priority
 
 | Phase | Feature | Priority | Effort | Dependencies |
@@ -871,6 +922,7 @@ volumes:
 | 15.1 | i18n | Low | High | None |
 | 16.1 | API Documentation | Low | Medium | None |
 | 17.1 | Docker | High | Medium | None |
+| 18 | Accounting Engine (Parts 1–7) | High | Very High | None (self-contained module) |
 
 ---
 
@@ -898,6 +950,9 @@ volumes:
    - Phase 13.3: Caching (Redis)
    - Phase 15.1: i18n
    - Phase 16.1: API Documentation
+
+5. **Financial Module — Phase 18 (part-by-part):**
+   - Accounting Engine Parts 1→7 strictly in order (see implementation_plan.md)
 
 ---
 
@@ -927,6 +982,10 @@ EMAIL_FROM=noreply@example.com
 
 # Phase 15: i18n
 NEXT_PUBLIC_DEFAULT_LOCALE=en
+
+# Phase 18: Accounting
+ACCOUNTING_BASE_CURRENCY=USD
+REQUIRE_DB_TRANSACTIONS=false
 ```
 
 ---
@@ -943,7 +1002,8 @@ NEXT_PUBLIC_DEFAULT_LOCALE=en
     "lru-cache": "^10.1.0",
     "nodemailer": "^6.9.7",
     "multer": "^1.4.5-lts.1",
-    "sharp": "^0.33.1"
+    "sharp": "^0.33.1",
+    "decimal.js": "^10.4.3"
   },
   "devDependencies": {
     "@types/multer": "^1.4.11",
