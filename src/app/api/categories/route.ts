@@ -2,12 +2,7 @@ import { NextRequest } from 'next/server';
 import { CategoryService } from '@/services/taxonomy-service';
 import { createTaxonomySchema } from '@/types/schemas';
 import { requireAuth } from '@/utils/auth';
-import {
-  successResponse,
-  errorResponse,
-  handleValidationError,
-  handleError,
-} from '@/utils/api-response';
+import { successResponse, handleError } from '@/utils/api-response';
 
 /**
  * GET /api/categories
@@ -47,9 +42,6 @@ export async function POST(request: NextRequest) {
     const category = await CategoryService.createCategory(validatedData);
     return successResponse(category, 201);
   } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return errorResponse('Unauthorized', 401);
-    }
-    return handleValidationError(error);
+    return handleError(error);
   }
 }

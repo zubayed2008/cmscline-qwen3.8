@@ -2,12 +2,7 @@ import { NextRequest } from 'next/server';
 import { ServiceItemService } from '@/services/service-item-service';
 import { createServiceItemSchema } from '@/types/schemas';
 import { requireAuth } from '@/utils/auth';
-import {
-  successResponse,
-  errorResponse,
-  handleValidationError,
-  handleError,
-} from '@/utils/api-response';
+import { successResponse, handleError } from '@/utils/api-response';
 
 /**
  * GET /api/service-items
@@ -47,9 +42,6 @@ export async function POST(request: NextRequest) {
     const item = await ServiceItemService.createServiceItem(validatedData);
     return successResponse(item, 201);
   } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return errorResponse('Unauthorized', 401);
-    }
-    return handleValidationError(error);
+    return handleError(error);
   }
 }

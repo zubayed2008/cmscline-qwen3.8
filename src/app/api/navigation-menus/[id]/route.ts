@@ -2,12 +2,7 @@ import { NextRequest } from 'next/server';
 import { NavigationService } from '@/services/navigation-service';
 import { updateNavigationMenuSchema } from '@/types/schemas';
 import { requireAdmin } from '@/utils/auth';
-import {
-  successResponse,
-  errorResponse,
-  handleValidationError,
-  handleError,
-} from '@/utils/api-response';
+import { successResponse, errorResponse, handleError } from '@/utils/api-response';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -54,15 +49,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     return successResponse(menu);
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === 'Unauthorized') {
-        return errorResponse('Unauthorized', 401);
-      }
-      if (error.message === 'Forbidden: Admin access required') {
-        return errorResponse('Forbidden: Admin access required', 403);
-      }
-    }
-    return handleValidationError(error);
+    return handleError(error);
   }
 }
 

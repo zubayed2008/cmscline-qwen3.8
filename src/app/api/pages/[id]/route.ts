@@ -2,12 +2,7 @@ import { NextRequest } from 'next/server';
 import { PageService } from '@/services/page-service';
 import { updatePageSchema } from '@/types/schemas';
 import { requireAdmin } from '@/utils/auth';
-import {
-  successResponse,
-  errorResponse,
-  handleValidationError,
-  handleError,
-} from '@/utils/api-response';
+import { successResponse, errorResponse, handleError } from '@/utils/api-response';
 import { withAudit } from '@/utils/audit-context';
 
 interface RouteParams {
@@ -55,15 +50,7 @@ export const PUT = withAudit(async function PUT(request: NextRequest, { params }
 
     return successResponse(page);
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === 'Unauthorized') {
-        return errorResponse('Unauthorized', 401);
-      }
-      if (error.message === 'Forbidden: Admin access required') {
-        return errorResponse('Forbidden: Admin access required', 403);
-      }
-    }
-    return handleValidationError(error);
+    return handleError(error);
   }
 });
 

@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { requireAdmin } from '@/utils/auth';
 import { AuditService } from '@/services/audit-service';
 import { AuditAction } from '@/models/audit-log-model';
+import { successResponse, errorResponse, handleError } from '@/utils/api-response';
 
 /**
  * GET /api/audit-logs
@@ -28,10 +29,7 @@ export async function GET(request: NextRequest) {
     // Validate action if provided
     const validActions: AuditAction[] = ['create', 'update', 'delete', 'login', 'logout'];
     if (action && !validActions.includes(action)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid action type' },
-        { status: 400 }
-      );
+      return errorResponse('Invalid action type', 400);
     }
 
     // Build query
@@ -49,30 +47,9 @@ export async function GET(request: NextRequest) {
     // Get audit logs
     const result = await AuditService.getAuditLogs(query);
 
-    return NextResponse.json({
-      success: true,
-      data: result,
-    });
+    return successResponse(result);
   } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    if (error instanceof Error && error.message.includes('Forbidden')) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden: Admin access required' },
-        { status: 403 }
-      );
-    }
-
-    console.error('Error fetching audit logs:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch audit logs' },
-      { status: 500 }
-    );
+    return handleError(error);
   }
 }
 
@@ -94,38 +71,14 @@ export async function DELETE(request: NextRequest) {
 
     // Validate days
     if (days < 1 || days > 365) {
-      return NextResponse.json(
-        { success: false, error: 'daysToKeep must be between 1 and 365' },
-        { status: 400 }
-      );
+      return errorResponse('daysToKeep must be between 1 and 365', 400);
     }
 
     // Delete old audit logs
     const deletedCount = await AuditService.deleteOldAuditLogs(days);
 
-    return NextResponse.json({
-      success: true,
-      data: { deletedCount, daysToKeep: days },
-    });
+    return successResponse({ deletedCount, daysToKeep: days });
   } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    if (error instanceof Error && error.message.includes('Forbidden')) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden: Admin access required' },
-        { status: 403 }
-      );
-    }
-
-    console.error('Error deleting old audit logs:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to delete old audit logs' },
-      { status: 500 }
-    );
+    return handleError(error);
   }
 }

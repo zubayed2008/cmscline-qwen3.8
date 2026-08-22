@@ -2,12 +2,7 @@ import { NextRequest } from 'next/server';
 import { PageService } from '@/services/page-service';
 import { createPageSchema } from '@/types/schemas';
 import { requireAdmin } from '@/utils/auth';
-import {
-  successResponse,
-  errorResponse,
-  handleValidationError,
-  handleError,
-} from '@/utils/api-response';
+import { successResponse, handleError } from '@/utils/api-response';
 
 /**
  * GET /api/pages
@@ -47,14 +42,6 @@ export async function POST(request: NextRequest) {
     const page = await PageService.createPage(validatedData);
     return successResponse(page, 201);
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === 'Unauthorized') {
-        return errorResponse('Unauthorized', 401);
-      }
-      if (error.message === 'Forbidden: Admin access required') {
-        return errorResponse('Forbidden: Admin access required', 403);
-      }
-    }
-    return handleValidationError(error);
+    return handleError(error);
   }
 }

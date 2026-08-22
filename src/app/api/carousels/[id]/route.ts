@@ -2,12 +2,7 @@ import { NextRequest } from 'next/server';
 import { CarouselService } from '@/services/carousel-service';
 import { updateCarouselItemSchema } from '@/types/schemas';
 import { requireAuth } from '@/utils/auth';
-import {
-  successResponse,
-  errorResponse,
-  handleValidationError,
-  handleError,
-} from '@/utils/api-response';
+import { successResponse, errorResponse, handleError } from '@/utils/api-response';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -54,10 +49,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     return successResponse(item);
   } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return errorResponse('Unauthorized', 401);
-    }
-    return handleValidationError(error);
+    return handleError(error);
   }
 }
 

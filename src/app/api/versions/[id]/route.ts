@@ -64,12 +64,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     return successResponse(restored);
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message === 'Unauthorized') {
-        return errorResponse('Unauthorized', 401);
-      }
-      if (error.message === 'Forbidden: Admin access required') {
-        return errorResponse('Forbidden: Admin access required', 403);
-      }
       if (error.message.startsWith('restoredBy is required')) {
         return errorResponse(error.message, 400);
       }

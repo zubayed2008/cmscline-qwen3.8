@@ -3,12 +3,7 @@ import { UserService } from '@/services/user-service';
 import { updateProfileSchema } from '@/types/schemas';
 import { requireAuth } from '@/utils/auth';
 import { sendAccountNotificationEmail } from '@/utils/email';
-import {
-  successResponse,
-  errorResponse,
-  handleValidationError,
-  handleError,
-} from '@/utils/api-response';
+import { successResponse, errorResponse, handleError } from '@/utils/api-response';
 
 /**
  * GET /api/auth/profile
@@ -56,18 +51,14 @@ export async function PUT(request: NextRequest) {
 
     return successResponse(UserService.sanitizeUser(user));
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === 'Unauthorized') {
-        return errorResponse('Unauthorized', 401);
-      }
-      if (
-        error.message === 'Current password is required to change email' ||
+    if (
+      error instanceof Error &&
+      (error.message === 'Current password is required to change email' ||
         error.message === 'Current password is required to change password' ||
-        error.message === 'Current password is incorrect'
-      ) {
-        return errorResponse(error.message, 400);
-      }
+        error.message === 'Current password is incorrect')
+    ) {
+      return errorResponse(error.message, 400);
     }
-    return handleValidationError(error);
+    return handleError(error);
   }
 }

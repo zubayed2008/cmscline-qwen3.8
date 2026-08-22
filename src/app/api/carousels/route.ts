@@ -2,12 +2,7 @@ import { NextRequest } from 'next/server';
 import { CarouselService } from '@/services/carousel-service';
 import { createCarouselItemSchema, reorderCarouselItemsSchema } from '@/types/schemas';
 import { requireAuth } from '@/utils/auth';
-import {
-  successResponse,
-  errorResponse,
-  handleValidationError,
-  handleError,
-} from '@/utils/api-response';
+import { successResponse, handleError } from '@/utils/api-response';
 import { CarouselType } from '@/models/carousel-item-model';
 
 /**
@@ -60,10 +55,7 @@ export async function POST(request: NextRequest) {
     const item = await CarouselService.createCarouselItem(validatedData);
     return successResponse(item, 201);
   } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return errorResponse('Unauthorized', 401);
-    }
-    return handleValidationError(error);
+    return handleError(error);
   }
 }
 
@@ -82,9 +74,6 @@ export async function PUT(request: NextRequest) {
     await CarouselService.reorderCarouselItems(validatedData.type, validatedData.items);
     return successResponse({ message: 'Carousel items reordered successfully' });
   } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return errorResponse('Unauthorized', 401);
-    }
-    return handleValidationError(error);
+    return handleError(error);
   }
 }

@@ -2,12 +2,7 @@ import { NextRequest } from 'next/server';
 import { VersionService } from '@/services/version-service';
 import { createContentVersionSchema, listVersionsQuerySchema } from '@/types/schemas';
 import { requireAdmin } from '@/utils/auth';
-import {
-  successResponse,
-  errorResponse,
-  handleValidationError,
-  handleError,
-} from '@/utils/api-response';
+import { successResponse, errorResponse, handleError } from '@/utils/api-response';
 
 /**
  * GET /api/versions?contentType=page|blog&contentId=<id>
@@ -53,17 +48,9 @@ export async function POST(request: NextRequest) {
 
     return successResponse(version, 201);
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === 'Unauthorized') {
-        return errorResponse('Unauthorized', 401);
-      }
-      if (error.message === 'Forbidden: Admin access required') {
-        return errorResponse('Forbidden: Admin access required', 403);
-      }
-      if (error.message.startsWith('changedBy is required')) {
-        return errorResponse(error.message, 400);
-      }
+    if (error instanceof Error && error.message.startsWith('changedBy is required')) {
+      return errorResponse(error.message, 400);
     }
-    return handleValidationError(error);
+    return handleError(error);
   }
 }

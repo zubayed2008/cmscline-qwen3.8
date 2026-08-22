@@ -70,9 +70,6 @@ export async function POST(request: NextRequest) {
 
     return successResponse(media, 201);
   } catch (error) {
-    if (error instanceof Error && error.message === 'Unauthorized') {
-      return errorResponse('Unauthorized', 401);
-    }
     return handleError(error);
   }
 }
