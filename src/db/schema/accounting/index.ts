@@ -7,3 +7,5 @@
  */
 export * from './enums';
 export * from './foundation';
+export * from './journal-entries';
+export * from './idempotency-records';

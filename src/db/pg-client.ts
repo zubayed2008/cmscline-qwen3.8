@@ -85,6 +85,24 @@ export async function getAccountingClient(): Promise<PoolClient> {
   return getPool().connect();
 }
 
+/** Transaction handle passed to code running inside a financial transaction. */
+export type AccountingTx = Parameters<Parameters<AccountingDb['transaction']>[0]>[0];
+
+/**
+ * Runs `fn` inside ONE PostgreSQL transaction - all-or-nothing (spec §8).
+ *
+ * Every operation that mutates a business document AND its accounting
+ * records MUST run through this helper. The default READ COMMITTED
+ * isolation is sufficient: document counters rely on atomic
+ * `UPDATE ... RETURNING` row locks, and journal posting re-reads the
+ * locked entry row inside the same transaction.
+ */
+export async function runInFinancialTransaction<T>(
+  fn: (exec: AccountingTx) => Promise<T>
+): Promise<T> {
+  return getAccountingDb().transaction(fn);
+}
+
 /**
  * Closes the pool explicitly. Intended for scripts and test teardown -
  * never call this from request-handling code.

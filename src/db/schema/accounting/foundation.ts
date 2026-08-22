@@ -36,6 +36,8 @@ export const accounts = pgTable(
       onDelete: 'set null',
     }),
     isActive: boolean('is_active').notNull().default(true),
+    /** Group/header accounts receive no postings (spec §4); leaf accounts post. */
+    isPostable: boolean('is_postable').notNull().default(true),
     /** Denormalized Mongo user display-name snapshot (no cross-DB FK). */
     createdByName: text('created_by_name'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -99,3 +101,9 @@ export const documentCounters = pgTable(
     uniqueIndex('document_counters_doc_type_year_pk').on(table.docType, table.year),
   ]
 );
+
+export type AccountRow = typeof accounts.$inferSelect;
+export type NewAccountRow = typeof accounts.$inferInsert;
+export type AccountingPeriodRow = typeof accountingPeriods.$inferSelect;
+export type NewAccountingPeriodRow = typeof accountingPeriods.$inferInsert;
+export type DocumentCounterRow = typeof documentCounters.$inferSelect;

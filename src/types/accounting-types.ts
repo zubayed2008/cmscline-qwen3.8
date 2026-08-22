@@ -242,3 +242,74 @@ export interface VendorStatementResponse {
   totalBalanceDue: MoneyString;
 }
 
+// ---------------------------------------------------------------------------
+// Journal engine payloads (Part 2)
+// ---------------------------------------------------------------------------
+
+/** Who performs a financial action (built from the NextAuth session). */
+export interface AccountingActor {
+  userId?: string | null;
+  userName?: string | null;
+}
+
+export interface JournalLineInput {
+  accountId: string;
+  /** Exactly one of debit/credit must be a positive amount; the other "0.00". */
+  debit: MoneyString;
+  credit: MoneyString;
+  description?: string;
+}
+
+export interface CreateJournalEntryInput {
+  entryDate: IsoDateString;
+  memo?: string;
+  sourceType?: AccountingSourceType;
+  sourceId?: string;
+  lines: JournalLineInput[];
+}
+
+export interface UpdateJournalEntryInput {
+  entryDate?: IsoDateString;
+  memo?: string;
+  sourceId?: string;
+  lines?: JournalLineInput[];
+  /** Optimistic lock: must match the stored version. */
+  expectedVersion: number;
+}
+
+export interface ReverseJournalEntryInput {
+  reason: string;
+  expectedVersion?: number;
+}
+
+export interface ListJournalEntriesFilter {
+  status?: JournalStatus;
+  sourceType?: AccountingSourceType;
+  fromDate?: IsoDateString;
+  toDate?: IsoDateString;
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+/** Chart-of-accounts tree node (flat rows nested by parentId). */
+export interface AccountTreeNode extends Account {
+  children: AccountTreeNode[];
+}
+
+export interface IdempotencyRecord {
+  key: string;
+  endpoint: string;
+  requestHash: string;
+  responseStatus: number;
+  responseBody: unknown;
+  createdAt: IsoTimestampString;
+  expiresAt: IsoTimestampString;
+}
+

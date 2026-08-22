@@ -60,8 +60,12 @@ export class AccountingNotFoundError extends AccountingError {
 }
 
 export class PeriodClosedError extends AccountingError {
-  constructor(periodName: string) {
-    super(`Accounting period "${periodName}" is closed`, 'PERIOD_CLOSED', 409);
+  constructor(date: string, periodName?: string) {
+    super(
+      `Cannot post to ${date}${periodName ? ` - period "${periodName}" is closed` : ' - period is closed'}`,
+      'PERIOD_CLOSED',
+      409
+    );
     this.name = 'PeriodClosedError';
   }
 }
@@ -74,6 +78,90 @@ export class UnbalancedEntryError extends AccountingError {
       422
     );
     this.name = 'UnbalancedEntryError';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Document lifecycle errors (Parts 2+)
+// ---------------------------------------------------------------------------
+
+/** Mutation attempted on an immutable document (e.g. editing a POSTED entry). */
+export class DocumentNotEditableError extends AccountingError {
+  constructor(document: string, status: string) {
+    super(
+      `${document} cannot be modified in status ${status}`,
+      'DOCUMENT_NOT_EDITABLE',
+      409
+    );
+    this.name = 'DocumentNotEditableError';
+  }
+}
+
+/** Lifecycle transition that the state machine does not allow. */
+export class InvalidStateTransitionError extends AccountingError {
+  constructor(document: string, from: string, to: string) {
+    super(
+      `${document}: transition ${from} -> ${to} is not allowed`,
+      'DOCUMENT_INVALID_STATE',
+      409
+    );
+    this.name = 'InvalidStateTransitionError';
+  }
+}
+
+/** Optimistic-lock rejection: the document changed underneath the caller. */
+export class ConcurrentModificationError extends AccountingError {
+  constructor(document: string) {
+    super(
+      `${document} was modified by someone else - reload and retry`,
+      'CONCURRENT_MODIFICATION',
+      409
+    );
+    this.name = 'ConcurrentModificationError';
+  }
+}
+
+/** Posting targeted a group/header account that must never receive amounts. */
+export class AccountNotPostableError extends AccountingError {
+  constructor(accountCode: string) {
+    super(
+      `Account ${accountCode} is a group account and cannot be posted to`,
+      'ACCOUNT_NOT_POSTABLE',
+      409
+    );
+    this.name = 'AccountNotPostableError';
+  }
+}
+
+/** Posting/deactivation targeted a deactivated account. */
+export class AccountInactiveError extends AccountingError {
+  constructor(accountCode: string) {
+    super(`Account ${accountCode} is inactive`, 'ACCOUNT_INACTIVE', 409);
+    this.name = 'AccountInactiveError';
+  }
+}
+
+/** Same idempotency key replayed with a DIFFERENT request payload. */
+export class DuplicateIdempotencyKeyError extends AccountingError {
+  constructor(key: string) {
+    super(
+      `Idempotency key "${key}" was already used with a different request`,
+      'DUPLICATE_IDEMPOTENCY_KEY',
+      409
+    );
+    this.name = 'DuplicateIdempotencyKeyError';
+  }
+}
+
+/** Account type change forbidden once postings reference the account. */
+export class AccountHasPostingsError extends AccountingError {
+  constructor(accountCode: string) {
+    super(
+      `Account ${accountCode} already has postings and its type cannot change`,
+      'ACCOUNT_HAS_POSTINGS',
+      409
+    );
+    this.name = 'AccountHasPostingsError';
   }
 }
 
