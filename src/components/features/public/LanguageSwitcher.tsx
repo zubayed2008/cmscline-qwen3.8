@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import { getSupportedLocales, getDefaultLocale, type Locale } from '@/utils/i18n';
-import { LOCALE_NAMES } from '@/utils/locale-config';
+import { usePathname } from 'next/navigation';
+import { getDefaultLocale, type Locale } from '@/utils/i18n';
+import { LOCALE_NAMES, UI_ENABLED_LOCALES } from '@/utils/locale-config';
 
 interface LanguageSwitcherProps {
   className?: string;
@@ -18,22 +18,24 @@ export default function LanguageSwitcher({
 }: LanguageSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
-  const locales = getSupportedLocales();
+  const locales = UI_ENABLED_LOCALES;
   const activeLocale: Locale = currentLocale || getDefaultLocale();
 
   const switchLocale = (locale: Locale) => {
     setIsOpen(false);
     const redirect = pathname || '/';
-    // The i18n API route sets the NEXT_LOCALE cookie server-side, then redirects back
-    router.push(`/api/i18n?locale=${locale}&redirect=${encodeURIComponent(redirect)}`);
+    // Full browser navigation through the i18n API route: it sets the
+    // NEXT_LOCALE cookie server-side, then redirects back so the whole
+    // site reloads and re-renders in the newly selected language.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional full-page reload; client-side routing would serve stale localized content
+    window.location.assign(`/api/i18n?locale=${locale}&redirect=${encodeURIComponent(redirect)}`);
   };
 
   return (
     <div className={`relative ${className}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        className="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
@@ -56,7 +58,7 @@ export default function LanguageSwitcher({
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
           <div
-            className={`absolute z-50 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none p-1 transition-opacity ${
+            className={`absolute z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg focus:outline-none p-1 transition-opacity ${
               position === 'top-right'
                 ? 'top-full mr-0'
                 : position === 'top-left'
@@ -72,14 +74,16 @@ export default function LanguageSwitcher({
                   <button
                     role="menuitem"
                     onClick={() => switchLocale(locale)}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                      activeLocale === locale ? 'text-blue-600 font-medium' : ''
+                    className={`w-full text-left px-4 py-2 text-sm rounded-md transition-colors ${
+                      activeLocale === locale
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-700 hover:bg-gray-50'
                     }`}
                   >
                     <span>{LOCALE_NAMES[locale] || locale.toUpperCase()}</span>
                     {activeLocale === locale && (
                       <svg
-                        className="inline-block w-4 h-4 ml-2 text-blue-500"
+                        className="inline-block w-4 h-4 ml-2 text-blue-600"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >

@@ -15,6 +15,13 @@ export type Locale = (typeof LOCALES)[number];
 
 export const SUPPORTED_LOCALES: readonly string[] = LOCALES;
 
+/**
+ * Locales shown in the public language switcher.
+ * Spanish/French remain fully supported (dictionaries, negotiation, API)
+ * but are hidden from the picker until their content translations ship.
+ */
+export const UI_ENABLED_LOCALES: readonly Locale[] = ['en', 'bn'];
+
 /** Default locale from environment or fallback to 'en' */
 export const DEFAULT_LOCALE: string = process.env.NEXT_PUBLIC_DEFAULT_LOCALE || 'en';
 
