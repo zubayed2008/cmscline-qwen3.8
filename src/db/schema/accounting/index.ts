@@ -12,3 +12,5 @@ export * from './idempotency-records';
 export * from './customers';
 export * from './invoices';
 export * from './payments';
+export * from './vendors';
+export * from './vendor-bills';

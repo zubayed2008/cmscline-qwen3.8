@@ -29,6 +29,12 @@ import {
 import { addMoney, compareMoney, parseMoney, subtractMoney } from '@/utils/money';
 import { AccountService } from './account-service';
 import {
+  AP_ACCOUNT_CODE,
+  BillService,
+  listOpenBillsForVendor,
+  lockVendorBillRow,
+} from './bill-service';
+import {
   AR_ACCOUNT_CODE,
   InvoiceService,
   listOpenInvoicesForCustomer,
@@ -64,7 +70,30 @@ export interface RecordPaymentResult {
   journal: Record<string, unknown>;
 }
 
+export interface VendorPaymentAllocationInput {
+  billId: string;
+  amount: string;
+}
+
+export interface RecordVendorPaymentInput {
+  vendorId: string;
+  paymentDate: string;
+  amount: string;
+  cashAccountId: string;
+  reference?: string | null;
+  allocations?: VendorPaymentAllocationInput[];
+}
+
+export interface VendorPaymentResult {
+  payment: PaymentRow;
+  allocations: Array<{ billId: string; amount: string }>;
+  journal: { id: string };
+}
+
 const BILLABLE_STATUSES = ['ISSUED', 'PARTIALLY_PAID', 'OVERDUE'] as const;
+
+/** Bills reachable for payment are exactly the POSTED family (spec §11). */
+const VENDOR_BILLABLE_STATUSES = ['POSTED', 'PARTIALLY_PAID'] as const;
 
 /** Validates explicitly-supplied allocations against invoices + the amount. */
 async function resolveExplicitAllocations(
@@ -115,6 +144,60 @@ async function resolveFifoAllocations(
       ? invoice.balanceDue
       : remaining;
     out.push({ invoiceId: invoice.id, amount: allocation });
+    remaining = subtractMoney(remaining, allocation);
+  }
+  return out;
+}
+
+/** Validates explicitly-supplied allocations against bills + the amount. */
+async function resolveVendorExplicitAllocations(
+  exec: AccountingTx,
+  vendorId: string,
+  allocations: readonly VendorPaymentAllocationInput[],
+  amount: string
+): Promise<Array<{ billId: string; amount: string }>> {
+  const total = allocations.reduce<string>((sum, a) => addMoney(sum, a.amount), '0.00');
+  if (compareMoney(total, amount) > 0) {
+    throw new PaymentAllocationExceedsAmountError();
+  }
+
+  const out: Array<{ billId: string; amount: string }> = [];
+  for (const allocation of allocations) {
+    const bill = await lockVendorBillRow(exec, allocation.billId);
+    if (bill.vendorId !== vendorId) {
+      throw new AccountingValidationError(
+        'An allocation references a bill belonging to another vendor'
+      );
+    }
+    if (!(VENDOR_BILLABLE_STATUSES as readonly string[]).includes(bill.status)) {
+      throw new AccountingValidationError(
+        `Bill ${bill.billNumber ?? bill.id} (${bill.status}) cannot receive payment`
+      );
+    }
+    const parsed = parseMoney(allocation.amount);
+    if (compareMoney(bill.balanceDue, parsed) < 0) {
+      throw new PaymentExceedsBalanceError(bill.billNumber ?? bill.id);
+    }
+    out.push({ billId: bill.id, amount: parsed });
+  }
+  return out;
+}
+
+/** Auto-allocates the payment FIFO across open bills (oldest due first). */
+async function resolveVendorFifoAllocations(
+  exec: AccountingTx,
+  vendorId: string,
+  amount: string
+): Promise<Array<{ billId: string; amount: string }>> {
+  const open = await listOpenBillsForVendor(exec, vendorId);
+  const out: Array<{ billId: string; amount: string }> = [];
+  let remaining = amount;
+  for (const bill of open) {
+    if (compareMoney(remaining, '0.00') <= 0) break;
+    const allocation = compareMoney(bill.balanceDue, remaining) <= 0
+      ? bill.balanceDue
+      : remaining;
+    out.push({ billId: bill.id, amount: allocation });
     remaining = subtractMoney(remaining, allocation);
   }
   return out;
@@ -216,6 +299,114 @@ export const PaymentService = {
       });
 
       return { payment: payment!, allocations, journal: { id: journal.entry.id } };
+    };
+    return exec ? write(exec) : runInFinancialTransaction(write);
+  },
+
+  /**
+   * Records a vendor payment against posted bills and books the cash journal
+   * entry atomically (spec §12, §8): Dr 2100 AP / Cr <cash>. Idempotent
+   * callers pass the key through the route wrapper, outside this method.
+   */
+  async recordVendorPayment(
+    input: RecordVendorPaymentInput,
+    ctx: ActorContext,
+    exec?: AccountingTx
+  ): Promise<VendorPaymentResult> {
+    const write = async (tx: AccountingTx): Promise<VendorPaymentResult> => {
+      const amount = parseMoney(input.amount);
+
+      const cashAccount = await AccountService.getPostableAccount(tx, input.cashAccountId);
+      const apAccount = await AccountService.getAccountByCode(tx, AP_ACCOUNT_CODE);
+      if (!apAccount) {
+        throw new AccountingValidationError(
+          `Control account ${AP_ACCOUNT_CODE} (Accounts Payable) is not configured - run seed:accounting`
+        );
+      }
+      await AccountService.getPostableAccount(tx, apAccount.id);
+
+      const allocations =
+        input.allocations && input.allocations.length > 0
+          ? await resolveVendorExplicitAllocations(tx, input.vendorId, input.allocations, amount)
+          : await resolveVendorFifoAllocations(tx, input.vendorId, amount);
+      if (allocations.length === 0) {
+        throw new AccountingValidationError(
+          'Payment could not be allocated - the vendor has no posted bills'
+        );
+      }
+
+      const year = new Date(`${input.paymentDate}T00:00:00Z`).getUTCFullYear();
+      const paymentNumber = await NumberService.nextDocumentNumber(tx, 'PAY', year);
+
+      const [payment] = await tx
+        .insert(payments)
+        .values({
+          paymentNumber,
+          paymentType: 'VENDOR',
+          vendorId: input.vendorId,
+          paymentDate: input.paymentDate,
+          currency: process.env.ACCOUNTING_BASE_CURRENCY ?? 'USD',
+          amount,
+          cashAccountId: input.cashAccountId,
+          reference: input.reference ?? null,
+          createdBy: ctx.userId,
+          createdByName: ctx.userName,
+        })
+        .returning();
+
+      await tx
+        .insert(paymentAllocations)
+        .values(
+          allocations.map((allocation) => ({
+            paymentId: payment!.id,
+            vendorBillId: allocation.billId,
+            allocatedAmount: allocation.amount,
+          }))
+        );
+
+      const journal = await JournalService.createPosted(
+        {
+          entryDate: input.paymentDate,
+          memo: `Vendor payment ${paymentNumber}`,
+          reference: input.reference ?? null,
+          sourceType: 'VENDOR_PAYMENT',
+          sourceId: payment!.id,
+          lines: [
+            {
+              accountId: apAccount.id,
+              debit: amount,
+              credit: '0.00',
+              description: 'Accounts payable paid',
+            },
+            {
+              accountId: cashAccount.id,
+              debit: '0.00',
+              credit: amount,
+              description: 'Cash paid',
+            },
+          ],
+        },
+        ctx,
+        tx
+      );
+
+      for (const allocation of allocations) {
+        await BillService.applyPaymentAllocation(tx, allocation.billId, allocation.amount);
+      }
+
+      auditAccountingEvent({
+        action: 'create',
+        entityType: 'vendor_payment',
+        entityId: payment!.id,
+        userId: ctx.userId,
+        summary: { paymentNumber, amount },
+      });
+
+      return {
+        payment: payment!,
+        allocations,
+        journal: { id: journal.entry.id },
+      };
     };
     return exec ? write(exec) : runInFinancialTransaction(write);
   },

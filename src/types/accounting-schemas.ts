@@ -185,10 +185,86 @@ export const paymentCreateSchema = z.object({
   allocations: z.array(paymentAllocationSchema).optional(),
 });
 
+// ---------------------------------------------------------------------------
+// Accounts Payable (Part 4)
+// ---------------------------------------------------------------------------
+
+export const vendorCreateSchema = z.object({
+  name: z.string().min(1).max(255),
+  email: z.string().email().max(255).optional().or(z.literal('')).transform((v) => v || null),
+  phone: z.string().max(50).optional().or(z.literal('')).transform((v) => v || null),
+  address: z.string().max(1000).optional().or(z.literal('')).transform((v) => v || null),
+  taxId: z.string().max(50).optional().or(z.literal('')).transform((v) => v || null),
+});
+
+export const vendorUpdateSchema = z.object({
+  name: z.string().min(1).max(255).optional(),
+  email: z.string().email().max(255).nullable().optional(),
+  phone: z.string().max(50).nullable().optional(),
+  address: z.string().max(1000).nullable().optional(),
+  taxId: z.string().max(50).nullable().optional(),
+  status: z.enum(['ACTIVE', 'INACTIVE'] as const).optional(),
+});
+
+/** One line of a vendor bill; totals are computed server-side only. */
+const billLineSchema = z.object({
+  accountId: uuidSchema,
+  description: z.string().max(500).optional().or(z.literal('')).transform((v) => v || null),
+  quantity: z.number().int().positive('Quantity must be a positive integer'),
+  unitPrice: positiveDecimalSchema,
+  /** Percent in [0,100], applied tax-exclusive (spec §14). Default 0. */
+  taxRate: z.number().min(0).max(100).optional(),
+});
+
+export const billCreateSchema = z.object({
+  vendorId: uuidSchema,
+  billDate: isoDateSchema,
+  dueDate: isoDateSchema,
+  notes: z.string().max(2000).optional().or(z.literal('')).transform((v) => v || null),
+  lines: z.array(billLineSchema).min(1, { message: 'At least one line is required' }),
+});
+
+export const billUpdateSchema = z.object({
+  billDate: isoDateSchema.optional(),
+  dueDate: isoDateSchema.optional(),
+  notes: z.string().max(2000).nullable().optional(),
+  lines: z.array(billLineSchema).min(1).optional(),
+  /** Optimistic lock version. */
+  expectedVersion: z.number().int().nonnegative(),
+});
+
+export const billActionSchema = z.object({
+  reason: z.string().min(3).max(500).optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Payments (Part 4 extension - vendor payments)
+// ---------------------------------------------------------------------------
+
+const vendorPaymentAllocationSchema = z.object({
+  billId: uuidSchema,
+  amount: positiveDecimalSchema,
+});
+
+export const vendorPaymentCreateSchema = z.object({
+  vendorId: uuidSchema,
+  paymentDate: isoDateSchema,
+  amount: positiveDecimalSchema,
+  cashAccountId: uuidSchema,
+  reference: z.string().max(100).optional().or(z.literal('')).transform((v) => v || null),
+  /** Optional explicit allocation map. When omitted, FIFO auto-allocation. */
+  allocations: z.array(vendorPaymentAllocationSchema).optional(),
+});
+
 export type CustomerCreateSchema = z.infer<typeof customerCreateSchema>;
 export type CustomerUpdateSchema = z.infer<typeof customerUpdateSchema>;
 export type InvoiceCreateSchema = z.infer<typeof invoiceCreateSchema>;
 export type InvoiceUpdateSchema = z.infer<typeof invoiceUpdateSchema>;
 export type PaymentCreateSchema = z.infer<typeof paymentCreateSchema>;
+export type VendorCreateSchema = z.infer<typeof vendorCreateSchema>;
+export type VendorUpdateSchema = z.infer<typeof vendorUpdateSchema>;
+export type BillCreateSchema = z.infer<typeof billCreateSchema>;
+export type BillUpdateSchema = z.infer<typeof billUpdateSchema>;
+export type VendorPaymentCreateSchema = z.infer<typeof vendorPaymentCreateSchema>;
 export type PeriodActionSchema = z.infer<typeof periodActionSchema>;
 export type JournalReverseSchema = z.infer<typeof journalReverseSchema>;

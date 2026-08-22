@@ -11,12 +11,14 @@ Scope & context: the module is self-contained in dedicated folders (`src/db/**` 
 > ### ✅ PROGRESS LEDGER (updated after every Part — read this first)
 > - **Part 1 — Infrastructure & Foundation: COMPLETE** — commit `6f3066c`
 > - **Part 2 — Core Journal Engine: COMPLETE** — commit `8a7ad8b` (branch `main_accounting`, pushed)
-> - Gates green at both commits: `tsc --noEmit` ✓ · ESLint ✓ · **261/261 tests / 15 suites** ✓ · production build ✓
+> - **Part 3 — Accounts Receivable: COMPLETE** — completed in a prior session (user-confirmed before Part 4): `customers`/`invoices`/`invoice_lines`/`payments`/`payment_allocations` schemas (migration `0002_romantic_mojo`), `CustomerService`, `InvoiceService` (issue 🔑/cancel), `PaymentService.recordCustomerPayment` 🔑 (allocation ≤ balance, Σ ≤ amount, FIFO), routes `/api/accounting/customers`, `/api/invoices/**`, `/api/payments`; `invoice-payment.test.ts`
+> - **Part 4 — Accounts Payable: COMPLETE** — commit **pending** (not committed — awaiting user instruction): `vendors`/`vendor_bills`/`vendor_bill_lines` schemas + `payments.vendorId` + `payment_allocations.vendorBillId` (exactly-one CHECK) (migration `0003_dear_archangel`), `VendorService`, `BillService` (approve → post 🔑 → pay), `PaymentService.recordVendorPayment` 🔑 (Dr 2100 AP / Cr Cash), routes `/api/vendors/**` + `/api/bills/**` (approve/post/cancel) + `/api/payments` vendor dispatch; `bill-service.test.ts` **deferred** per user instruction ("do not perform unit test cases for now")
+> - Gates green at Part 4: `tsc --noEmit` ✓ · ESLint ✓ (0 problems on touched files) · **278/278 tests / 16 suites** ✓ · production build ✓
 > - **Actual npm scripts supersede any differently-named references below:** `db:accounting:generate` · `db:accounting:migrate` (drizzle-kit migrate — no ts-node migrator was built) · `db:accounting:studio` · `db:accounting:create` / `db:accounting:drop` (docker-compose psql role+DB bootstrap for fresh AND pre-existing volumes)
-> - **Carry-over into Part 3 (build these FIRST):** API routes `/api/accounting/**` (accounts, periods ± close/reopen, journal-entries ± submit/approve/post/reverse) and the spec §29 seed script (`scripts/seed-accounting.ts`) were scoped to Part 2 but deferred
+> - **Carry-over (built in Part 3, prior session):** API routes `/api/accounting/**` (accounts, periods ± close/reopen, journal-entries ± submit/approve/post/reverse) and the spec §29 seed script (`scripts/seed-accounting.ts`)
 > - Actual util paths: `src/utils/money.ts` and `src/utils/accounting-errors.ts` (flat files, not `src/utils/accounting/*`)
-> - Deferred manual gate (needs Docker Desktop): compose up → `npm run db:accounting:create` → `npm run db:accounting:migrate` → seed (once the script lands)
-> - **Next: Part 3 — Accounts Receivable**
+> - Deferred manual gate (needs Docker Desktop): compose up → `npm run db:accounting:create` → `npm run db:accounting:migrate` → seed → exercise AP flows live
+> - **Next: Part 5 — Financial Reporting**
 
 ### Locked Design Decisions (owner-approved — mirrored in future-plan.md Phase 18)
 
@@ -273,9 +275,9 @@ Seven independently triggerable Parts; owner says "start Part N" and nothing bey
 
 **Part 2 — Core Journal Engine — ✅ COMPLETE (commit `8a7ad8b`; API routes + seed script deferred to Part 3):** add `journal-entries.ts`, `postings.ts`, `idempotency-records.ts` schemas (migration `0001`); `runInFinancialTransaction` helper; services `NumberService` (row-locked counter inside caller tx), `PeriodService`, `AccountService`, `IdempotencyService`, `JournalService` (DRAFT → PENDING_APPROVAL → APPROVED → POSTED 🔑 → REVERSED 🔑 with optimistic `version`); API routes for accounts, periods (+close/reopen), journal-entries (+submit/approve/post/reverse); Mongo `AuditService` best-effort outside the PG transaction; `src/__tests__/services/accounting/journal-service.test.ts`.
 
-**Part 3 — Accounts Receivable (⏭ NEXT UP — also absorbs Part 2's deferred routes + seed script):** schemas `customers.ts`, `invoices.ts` (embedded JSON lines), `payments.ts` (embedded allocations) → migration `0002`; `CustomerService`, `InvoiceService` (issue 🔑 / cancel), `PaymentService.recordCustomerPayment` 🔑 (allocation ≤ balance, Σ ≤ amount); routes `/api/accounting/customers`, spec §22 `/api/invoices/**`, `/api/payments`; `invoice-payment.test.ts`.
+**Part 3 — Accounts Receivable — ✅ COMPLETE (prior session, user-confirmed):** schemas `customers.ts`, `invoices.ts` (+ normalized `invoice_lines.ts`), `payments.ts` (normalized allocations) → migration `0002`; `CustomerService`, `InvoiceService` (issue 🔑 / cancel), `PaymentService.recordCustomerPayment` 🔑 (allocation ≤ balance, Σ ≤ amount); routes `/api/accounting/customers`, spec §22 `/api/invoices/**`, `/api/payments`; `invoice-payment.test.ts`.
 
-**Part 4 — Accounts Payable:** schemas `vendors.ts`, `vendor-bills.ts` → migration `0003`; `VendorService`, `BillService` (approve → post 🔑 → pay 🔑 mirroring AR); routes `/api/vendors/**`, `/api/bills/**`; skip `bill-service.test.ts` and ask for it later
+**Part 4 — Accounts Payable — ✅ COMPLETE (commit pending, NOT committed):** schemas `vendors.ts`, `vendor-bills.ts` (+ `vendor_bill_lines.ts`), payments extension (`vendorId`, `payment_allocations.vendorBillId` + exactly-one CHECK) → migration `0003_dear_archangel`; `VendorService`, `BillService` (approve → post 🔑 → pay), `PaymentService.recordVendorPayment` 🔑 (Dr AP / Cr Cash); routes `/api/vendors/**`, `/api/bills/**` (approve/post/cancel), `/api/payments` vendor dispatch; `bill-service.test.ts` skipped and asked for later (user: no unit tests for now)
 
 **Part 5 — Financial Reporting:** `LedgerService` — General Ledger (filters + pagination), Trial Balance, P&L, Balance Sheet, AR/AP aging — aggregating POSTED postings only; report GET routes under `/api/accounting/`; skip `ledger-service.test.ts` and ask for it later invariants.
 
