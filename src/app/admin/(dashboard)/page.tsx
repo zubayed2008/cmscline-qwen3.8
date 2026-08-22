@@ -5,6 +5,7 @@ import UserService from '@/services/user-service';
 import ContactService from '@/services/contact-service';
 import MediaService from '@/services/media-service';
 import CarouselService from '@/services/carousel-service';
+import {TagService, CategoryService} from '@/services/taxonomy-service';
 import { requireAdmin } from '@/utils/auth';
 import AnalyticsDashboard from '@/components/features/admin/AnalyticsDashboard';
 import {
@@ -33,6 +34,8 @@ interface DashboardStats {
   unreadSubmissions: number;
   media: number;
   carousels: number;
+  tags: number;
+  categories: number;
 }
 
 interface RecentItem {
@@ -46,13 +49,15 @@ interface RecentItem {
 
 async function getDashboardStats(): Promise<DashboardStats> {
   try {
-    const [pages, blogs, users, submissions, media, carousels] = await Promise.all([
+    const [pages, blogs, users, submissions, media, carousels, tags, categories] = await Promise.all([
       PageService.getAllPages(),
       BlogService.getAllBlogs(),
       UserService.getAllUsers(),
       ContactService.getAllSubmissions(),
       MediaService.getAllMedia(),
       CarouselService.getAllCarouselItems(),
+      TagService.getAllTags(),
+      CategoryService.getAllCategories(),
     ]);
 
     return {
@@ -63,10 +68,12 @@ async function getDashboardStats(): Promise<DashboardStats> {
       unreadSubmissions: submissions.filter((s: { isRead: boolean }) => !s.isRead).length,
       media: media.length,
       carousels: carousels.length,
+      tags: tags.length,
+      categories: categories.length,
     };
   } catch (error) {
     console.error('Failed to fetch dashboard stats:', error);
-    return { pages: 0, blogs: 0, users: 0, submissions: 0, unreadSubmissions: 0, media: 0, carousels: 0 };
+    return { pages: 0, blogs: 0, users: 0, submissions: 0, unreadSubmissions: 0, media: 0, carousels: 0, tags: 0, categories: 0 };
   }
 }
 
