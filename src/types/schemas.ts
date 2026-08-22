@@ -1,4 +1,29 @@
 import { z } from 'zod';
+import { LOCALES } from '@/utils/locale-config';
+
+// ============================================================================
+// Shared: Per-locale content translations (Phase 15.5 i18n)
+// ============================================================================
+
+const translationEntrySchema = z
+  .object({
+    title: z.string().max(200, 'Translated title must be 200 characters or less').optional(),
+    content: z.string().optional(),
+  })
+  .refine((entry) => entry.title !== undefined || entry.content !== undefined, {
+    message: 'Translation must include a title or content',
+  });
+
+/** Keys are locale codes from LOCALES (currently only 'bn' is translatable) */
+export const contentTranslationsSchema = z
+  .record(
+    z.string().refine(
+      (key) => (LOCALES as readonly string[]).includes(key),
+      'Unsupported locale for translations'
+    ),
+    translationEntrySchema
+  )
+  .optional();
 
 // ============================================================================
 // Page Schemas
@@ -12,6 +37,7 @@ export const createPageSchema = z.object({
     .max(200, 'Slug must be 200 characters or less')
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase alphanumeric with hyphens'),
   content: z.string().min(1, 'Content is required'),
+  translations: contentTranslationsSchema,
   isDefaultHomepage: z.boolean().optional(),
   isActive: z.boolean().optional(),
 });
@@ -29,6 +55,7 @@ export const updatePageSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase alphanumeric with hyphens')
     .optional(),
   content: z.string().min(1, 'Content is required').optional(),
+  translations: contentTranslationsSchema,
   isDefaultHomepage: z.boolean().optional(),
   isActive: z.boolean().optional(),
 });
@@ -50,6 +77,7 @@ export const createBlogSchema = z.object({
     .max(200, 'Slug must be 200 characters or less')
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase alphanumeric with hyphens'),
   content: z.string().min(1, 'Content is required'),
+  translations: contentTranslationsSchema,
   category: z.string().regex(objectIdRegex, 'Invalid category ID').optional(),
   tags: z.array(z.string().regex(objectIdRegex, 'Invalid tag ID')).optional(),
   featuredImage: z.string().regex(objectIdRegex, 'Invalid featured image ID').optional(),
@@ -69,6 +97,7 @@ export const updateBlogSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase alphanumeric with hyphens')
     .optional(),
   content: z.string().min(1, 'Content is required').optional(),
+  translations: contentTranslationsSchema,
   category: z.string().regex(objectIdRegex, 'Invalid category ID').nullable().optional(),
   tags: z.array(z.string().regex(objectIdRegex, 'Invalid tag ID')).optional(),
   featuredImage: z.string().regex(objectIdRegex, 'Invalid featured image ID').nullable().optional(),
@@ -387,6 +416,8 @@ export const createContentVersionSchema = z.object({
     .max(200, 'Slug must be 200 characters or less')
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase alphanumeric with hyphens'),
   content: z.string().min(1, 'Content is required'),
+  // Phase 15.5: manual snapshots may capture per-locale translations
+  translations: contentTranslationsSchema,
   changeSummary: z.string().max(500, 'Change summary must be 500 characters or less').optional(),
 });
 

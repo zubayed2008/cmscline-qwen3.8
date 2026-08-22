@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { PageService } from '@/services/page-service';
 import { CarouselService } from '@/services/carousel-service';
 import { NavigationService } from '@/services/navigation-service';
@@ -9,6 +10,7 @@ import MapLocation from '@/components/ui/MapLocation';
 import ContentRenderer from '@/components/features/content/ContentRenderer';
 import StructuredData from '@/components/features/seo/StructuredData';
 import { generateExcerpt, generatePageStructuredData } from '@/utils/seo';
+import { getLocale } from '@/utils/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,9 +51,13 @@ export const metadata: Metadata = {
  * Renders Hero Carousel, Client Carousel, Service Grid, Contact Section, and Map.
  */
 export default async function HomePage() {
+  // Phase 15.5: resolve the request locale from the NEXT_LOCALE cookie
+  const cookieStore = await cookies();
+  const locale = getLocale(cookieStore.get('NEXT_LOCALE')?.value);
+
   // Fetch all data in parallel
   const [defaultPage, heroItems, clientItems, navMenu] = await Promise.all([
-    PageService.getDefaultHomepage(),
+    PageService.getDefaultHomepage(locale),
     CarouselService.getActiveCarouselItemsByType('hero'),
     CarouselService.getActiveCarouselItemsByType('client'),
     NavigationService.getDefaultNavigationMenu(),

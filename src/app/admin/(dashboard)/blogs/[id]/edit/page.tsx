@@ -3,6 +3,7 @@ import BlogService from '@/services/blog-service';
 import VersionService from '@/services/version-service';
 import { CategoryService, TagService } from '@/services/taxonomy-service';
 import { requireAdmin } from '@/utils/auth';
+import { toTranslationsRecord } from '@/utils/localized-content';
 import BlogForm from '../../_components/BlogForm';
 import VersionHistory, {
   SerializedVersion,
@@ -45,6 +46,8 @@ export default async function EditBlogPage({ params }: EditBlogPageProps) {
     title: blog.title,
     slug: blog.slug,
     content: blog.content,
+    // Phase 15.5: pass per-locale translations to the form (Mongoose Map -> plain object)
+    translations: toTranslationsRecord(blog.translations) ?? {},
     category: categoryId,
     tags: tagIds,
     featuredImage: featuredImageId,
@@ -69,6 +72,7 @@ export default async function EditBlogPage({ params }: EditBlogPageProps) {
     title: v.title,
     slug: v.slug,
     content: v.content,
+    translations: toTranslationsRecord(v.translations) ?? {},
     changeSummary: v.changeSummary,
     changedByName:
       (v.changedBy as unknown as { name?: string; email?: string } | null)?.name ??
@@ -92,6 +96,7 @@ export default async function EditBlogPage({ params }: EditBlogPageProps) {
           title: serializedBlog.title,
           slug: serializedBlog.slug,
           content: serializedBlog.content,
+          translations: serializedBlog.translations,
         }}
         initialVersions={serializedVersions}
       />

@@ -8,16 +8,28 @@ import RichTextEditor from '@/components/editor/RichTextEditor';
 import Button from '@/components/ui/Button';
 import Card, { CardBody, CardHeader } from '@/components/ui/Card';
 
+/** Per-locale overrides as sent to / accepted from the API (Phase 15.5) */
+type TranslationsMap = Record<string, { title?: string; content?: string }>;
+
 interface PageFormProps {
   initialData?: {
     _id: string;
     title: string;
     slug: string;
     content: string;
+    translations?: TranslationsMap;
     isDefaultHomepage: boolean;
     isActive: boolean;
   };
 }
+
+/** Language tabs shown in the form (English is the source of truth) */
+const LANGUAGE_TABS = [
+  { code: 'en', label: 'English' },
+  { code: 'bn', label: 'বাংলা' },
+] as const;
+
+type LanguageTabCode = (typeof LANGUAGE_TABS)[number]['code'];
 
 export default function PageForm({ initialData }: PageFormProps) {
   const router = useRouter();
@@ -30,6 +42,12 @@ export default function PageForm({ initialData }: PageFormProps) {
     initialData?.isDefaultHomepage ?? false
   );
   const [isActive, setIsActive] = useState(initialData?.isActive ?? true);
+
+  // Phase 15.5: Bangla translation fields (empty string = untranslated)
+  const [activeTab, setActiveTab] = useState<LanguageTabCode>('en');
+  const [bnTitle, setBnTitle] = useState(initialData?.translations?.bn?.title ?? '');
+  const [bnContent, setBnContent] = useState(initialData?.translations?.bn?.content ?? '');
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -46,6 +64,8 @@ export default function PageForm({ initialData }: PageFormProps) {
       setTitle(initialData.title);
       setSlug(initialData.slug);
       setContent(initialData.content);
+      setBnTitle(initialData.translations?.bn?.title ?? '');
+      setBnContent(initialData.translations?.bn?.content ?? '');
       setIsDefaultHomepage(initialData.isDefaultHomepage);
       setIsActive(initialData.isActive);
     }
@@ -75,6 +95,14 @@ export default function PageForm({ initialData }: PageFormProps) {
       const url = isEditing ? `/api/pages/${initialData._id}` : '/api/pages';
       const method = isEditing ? 'PUT' : 'POST';
 
+      // Phase 15.5: build the translations payload. Empty fields are omitted so
+      // the API stores only what was actually translated; the whole map is
+      // replaced on save (the form always submits the complete bn entry).
+      const bnTranslation: { title?: string; content?: string } = {};
+      if (bnTitle.trim()) bnTranslation.title = bnTitle;
+      if (bnContent.trim()) bnTranslation.content = bnContent;
+      const translations = Object.keys(bnTranslation).length > 0 ? { bn: bnTranslation } : {};
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -82,6 +110,7 @@ export default function PageForm({ initialData }: PageFormProps) {
           title,
           slug,
           content,
+          translations,
           isDefaultHomepage,
           isActive,
         }),
@@ -118,32 +147,93 @@ export default function PageForm({ initialData }: PageFormProps) {
             </div>
           )}
 
-          <Input
-            label="Title"
-            value={title}
-            onChange={(e) => handleTitleChange(e.target.value)}
-            placeholder="Enter page title"
-            required
-          />
-
-          <Input
-            label="Slug"
-            value={slug}
-            onChange={(e) => setSlug(generateSlug(e.target.value))}
-            placeholder="page-url-slug"
-            required
-          />
-
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Content <span className="text-red-500">*</span>
-            </label>
-            <RichTextEditor
-              content={content}
-              onChange={setContent}
-              placeholder="Write your page content here..."
-            />
+          {/* Language Tabs (Phase 15.5) */}
+          <div
+            className="flex gap-2 border-b border-gray-200"
+            role="tablist"
+            aria-label="Content languages"
+          >
+            {LANGUAGE_TABS.map((tab) => (
+              <button
+                key={tab.code}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === tab.code}
+                onClick={() => setActiveTab(tab.code)}
+                className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                  activeTab === tab.code
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {tab.label}
+                {tab.code !== 'en' && !bnTitle.trim() && !bnContent.trim() && (
+                  <span className="ml-1.5 text-xs text-amber-500" title="Untranslated">
+                    ●
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
+
+          {activeTab === 'en' && (
+            <>
+              <Input
+                label="Title"
+                value={title}
+                onChange={(e) => handleTitleChange(e.target.value)}
+                placeholder="Enter page title"
+                required
+              />
+
+              <Input
+                label="Slug"
+                value={slug}
+                onChange={(e) => setSlug(generateSlug(e.target.value))}
+                placeholder="page-url-slug"
+                required
+              />
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Content <span className="text-red-500">*</span>
+                </label>
+                <RichTextEditor
+                  content={content}
+                  onChange={setContent}
+                  placeholder="Write your page content here..."
+                />
+              </div>
+            </>
+          )}
+
+          {activeTab === 'bn' && (
+            <>
+              <Input
+                label="Title (বাংলা)"
+                value={bnTitle}
+                onChange={(e) => setBnTitle(e.target.value)}
+                placeholder="বাংলা শিরোনাম লিখুন"
+              />
+              <p className="-mt-3 text-xs text-gray-500">
+                Optional — if left empty, visitors see the English title.
+              </p>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Content (বাংলা)
+                </label>
+                <RichTextEditor
+                  content={bnContent}
+                  onChange={setBnContent}
+                  placeholder="বাংলা কনটেন্ট এখানে লিখুন..."
+                />
+                <p className="mt-1.5 text-xs text-gray-500">
+                  Optional — if left empty, visitors see the English content.
+                </p>
+              </div>
+            </>
+          )}
 
           <div className="flex items-center gap-8">
             <Toggle

@@ -11,6 +11,8 @@ export interface VersionHistoryCurrent {
   title: string;
   slug: string;
   content: string;
+  /** Phase 15.5: per-locale overrides so Bangla fields can be compared too */
+  translations?: Record<string, { title?: string; content?: string }>;
 }
 
 /** Serializable version record passed from the Server Component. */
@@ -20,6 +22,7 @@ export interface SerializedVersion {
   title: string;
   slug: string;
   content: string;
+  translations?: Record<string, { title?: string; content?: string }>;
   changeSummary?: string;
   changedByName: string;
   createdAt: string;
@@ -44,6 +47,10 @@ function toSerialized(raw: Record<string, unknown>): SerializedVersion {
     title: String(raw.title),
     slug: String(raw.slug),
     content: String(raw.content),
+    translations:
+      raw.translations && typeof raw.translations === 'object'
+        ? (raw.translations as SerializedVersion['translations'])
+        : {},
     changeSummary: raw.changeSummary ? String(raw.changeSummary) : undefined,
     changedByName:
       typeof changedBy === 'object' && changedBy !== null
@@ -166,16 +173,35 @@ export default function VersionHistory({
     if (!v) return { label: 'Unknown', data: current };
     return {
       label: `v${v.version}`,
-      data: { title: v.title, slug: v.slug, content: v.content },
+      data: {
+        title: v.title,
+        slug: v.slug,
+        content: v.content,
+        translations: v.translations,
+      },
     };
   };
 
   const sideA = resolveSide(compareA);
   const sideB = resolveSide(compareB);
-  const fields: Array<{ key: keyof VersionHistoryCurrent; label: string }> = [
-    { key: 'title', label: 'Title' },
-    { key: 'slug', label: 'Slug' },
-    { key: 'content', label: 'Content' },
+  const fields: Array<{
+    id: string;
+    label: string;
+    value: (data: VersionHistoryCurrent) => string;
+  }> = [
+    { id: 'title', label: 'Title', value: (d) => d.title },
+    { id: 'slug', label: 'Slug', value: (d) => d.slug },
+    { id: 'content', label: 'Content', value: (d) => d.content },
+    {
+      id: 'bn-title',
+      label: 'বাংলা Title',
+      value: (d) => d.translations?.bn?.title ?? '',
+    },
+    {
+      id: 'bn-content',
+      label: 'বাংলা Content',
+      value: (d) => d.translations?.bn?.content ?? '',
+    },
   ];
 
   const versionOptions = [
@@ -310,12 +336,13 @@ export default function VersionHistory({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
-                        {fields.map(({ key, label }) => {
-                          const changed = sideA.data[key] !== sideB.data[key];
+                        {fields.map((field) => {
+                          const changed =
+                            field.value(sideA.data) !== field.value(sideB.data);
                           return (
-                            <tr key={key}>
+                            <tr key={field.id}>
                               <td className="px-3 py-2 font-medium text-gray-900 align-top">
-                                {label}
+                                {field.label}
                                 {changed && (
                                   <span className="ml-2 rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-semibold text-yellow-800">
                                     CHANGED
@@ -327,14 +354,18 @@ export default function VersionHistory({
                                   changed ? 'bg-red-50 text-red-900' : 'text-gray-600'
                                 }`}
                               >
-                                {sideA.data[key] || <em className="text-gray-400">(empty)</em>}
+                                {field.value(sideA.data) || (
+                                  <em className="text-gray-400">(empty)</em>
+                                )}
                               </td>
                               <td
                                 className={`px-3 py-2 align-top whitespace-pre-wrap break-words ${
                                   changed ? 'bg-green-50 text-green-900' : 'text-gray-600'
                                 }`}
                               >
-                                {sideB.data[key] || <em className="text-gray-400">(empty)</em>}
+                                {field.value(sideB.data) || (
+                                  <em className="text-gray-400">(empty)</em>
+                                )}
                               </td>
                             </tr>
                           );

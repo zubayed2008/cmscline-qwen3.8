@@ -100,6 +100,20 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 - Locale detection priority: NEXT_LOCALE cookie → Accept-Language header → default locale
 - Next.js 16 uses `proxy.ts` (NOT middleware.tsx) for server-side logic
 
+### Phase 15.5: Bangla Locale & Content Translation
+- `src/utils/locale-config.ts` - Single source of truth: LOCALES ('en', 'es', 'fr', 'bn'), Locale type, DEFAULT_LOCALE, LOCALE_NAMES (bn: 'বাংলা'), LOCALE_MAP (incl. bn-bd/bn-in), isSupportedLocale()
+- `src/locales/bn/common.json` - Full Bangla UI dictionary (common/navigation/footer/meta/ui namespaces)
+- `src/utils/localized-content.ts` - resolveLocalized() per-field fallback (locale translation → English base), toTranslationsRecord(), getRequestLocale()
+- Hardcoded `'en' | 'es' | 'fr'` unions removed from i18n.ts, proxy.ts, LanguageSwitcher.tsx (all consume locale-config)
+- Page & Blog models: embedded `translations` Map (`{ bn: { title, content } }`) - adding locales needs no migration; text indexes extended to translations.bn.title/content
+- Public pages (home, [slug], blog list/detail, search) resolve NEXT_LOCALE cookie server-side; generateMetadata is locale-aware
+- Services accept optional locale param on public getters (backward-compatible; admin CRUD untouched)
+- Admin PageForm/BlogForm: English | বাংলা language tabs with optional Bangla Title + RichTextEditor
+- Versioning integrity: ContentVersion stores translations; restores write back only when present (pre-15.5 snapshots don't wipe translations)
+- Search: locale passed through provider/service/API; results localized via resolveLocalized()
+- `scripts/migrate-i18n-indexes.ts` + `npm run migrate:i18n-indexes` - REQUIRED once on existing DBs (drops old text index, recreates Bangla-aware one; idempotent)
+- Noto_Sans_Bengali webfont added in layout.tsx (Bengali glyphs fall through Geist automatically)
+
 ### Phase 10: SEO & Discovery
 - `src/utils/seo.ts` - SEO utility functions (generateExcerpt, generateCanonicalUrl, generateOgImageUrl, formatSeoDate, generatePageTitle, sanitizeSlug, generateBlogStructuredData, generatePageStructuredData)
 - `src/components/features/seo/StructuredData.tsx` - JSON-LD structured data component
@@ -166,6 +180,7 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 7. **Search Provider:** ✅ Configurable via SEARCH_PROVIDER env var (MongoDB Text Index default)
 8. **Active Content Search:** ✅ Search only returns active pages/blogs
 9. **Relevance Sorting:** ✅ Results sorted by MongoDB textScore
+10. **Content Localization Fallback:** ✅ Missing/blank translation falls back per-field to the English base fields (never 404s)
 
 ## Next Steps
 - Phase 5.5: Playwright E2E testing (not yet done)
@@ -193,3 +208,5 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 - Search provider abstraction mirrors storage provider pattern
 - Next.js 16 uses `src/proxy.ts` (formerly middleware); locale detection runs there for pages and rate limiting for API routes
 - i18n locale resolution priority: NEXT_LOCALE cookie → Accept-Language header → default locale
+- Content translation fallback rule: translations[locale].field → original base field (per field, never fails)
+- Run `npm run migrate:i18n-indexes` ONCE on any existing database after pulling Phase 15.5 (swaps old text index for the Bangla-aware one; idempotent)

@@ -2,11 +2,22 @@ import dbConnect from '@/utils/db-connect';
 import Blog, { IBlog } from '@/models/blog-model';
 import { Types } from 'mongoose';
 import { VersionService } from '@/services/version-service';
+import type { Locale } from '@/utils/locale-config';
+import { resolveLocalized, toTranslationsRecord } from '@/utils/localized-content';
+
+/**
+ * Per-locale overrides stored in the `translations` map (Phase 15.5).
+ * Keyed by locale code, e.g. { bn: { title: '...', content: '...' } }.
+ */
+export interface TranslationsInput {
+  [locale: string]: { title?: string; content?: string };
+}
 
 export interface CreateBlogInput {
   title: string;
   slug: string;
   content: string;
+  translations?: TranslationsInput;
   category?: string;
   tags?: string[];
   featuredImage?: string;
@@ -17,6 +28,7 @@ export interface UpdateBlogInput {
   title?: string;
   slug?: string;
   content?: string;
+  translations?: TranslationsInput;
   category?: string | null;
   tags?: string[];
   featuredImage?: string | null;
@@ -38,6 +50,7 @@ export const BlogService = {
       title: input.title,
       slug: input.slug.toLowerCase(),
       content: input.content,
+      translations: input.translations ?? {},
       isActive: input.isActive ?? true,
     };
 
@@ -61,6 +74,7 @@ export const BlogService = {
         title: blog.title,
         slug: blog.slug,
         content: blog.content,
+        translations: toTranslationsRecord(blog.translations),
         changeSummary: 'Initial version',
       });
     } catch (error) {
@@ -93,6 +107,7 @@ export const BlogService = {
           title: currentBlog.title,
           slug: currentBlog.slug,
           content: currentBlog.content,
+          translations: toTranslationsRecord(currentBlog.translations),
           changeSummary: 'Snapshot before update',
         });
       } catch (error) {
@@ -105,6 +120,9 @@ export const BlogService = {
     if (input.title !== undefined) updateData.title = input.title;
     if (input.slug !== undefined) updateData.slug = input.slug.toLowerCase();
     if (input.content !== undefined) updateData.content = input.content;
+    // Phase 15.5: replace the whole translations map when provided
+    // (translation-only changes intentionally do NOT trigger a version snapshot)
+    if (input.translations !== undefined) updateData.translations = input.translations;
     if (input.isActive !== undefined) updateData.isActive = input.isActive;
 
     if (input.category !== undefined) {
@@ -142,13 +160,21 @@ export const BlogService = {
   /**
    * Gets only active blogs with populated relations (for public views).
    */
-  async getActiveBlogs(): Promise<IBlog[]> {
+  async getActiveBlogs(locale?: Locale): Promise<IBlog[]> {
     await dbConnect();
-    return Blog.find({ isActive: true })
+    const blogs = await Blog.find({ isActive: true })
       .populate('category', 'name slug isActive')
       .populate('tags', 'name slug isActive')
       .populate('featuredImage', 'url filename')
       .sort({ createdAt: -1 });
+
+    // Phase 15.5: localize title/content for public views (mutates in place)
+    if (locale && locale !== 'en') {
+      for (const blog of blogs) {
+        Object.assign(blog, resolveLocalized(blog, locale));
+      }
+    }
+    return blogs;
   },
 
   /**
@@ -165,12 +191,18 @@ export const BlogService = {
   /**
    * Gets a blog by slug with populated relations.
    */
-  async getBlogBySlug(slug: string): Promise<IBlog | null> {
+  async getBlogBySlug(slug: string, locale?: Locale): Promise<IBlog | null> {
     await dbConnect();
-    return Blog.findOne({ slug: slug.toLowerCase() })
+    const blog = await Blog.findOne({ slug: slug.toLowerCase() })
       .populate('category', 'name slug isActive')
       .populate('tags', 'name slug isActive')
       .populate('featuredImage', 'url filename');
+
+    // Phase 15.5: localize title/content for public views
+    if (blog && locale && locale !== 'en') {
+      Object.assign(blog, resolveLocalized(blog, locale));
+    }
+    return blog;
   },
 
   /**

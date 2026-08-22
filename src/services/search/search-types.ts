@@ -37,6 +37,12 @@ export interface SearchQuery {
   query: string;
   /** The content type to search (page, blog, or all) */
   type?: SearchContentType | 'all';
+  /**
+   * Locale used for result title/excerpt localization (Phase 15.5).
+   * Matching itself is performed across ALL locales by the text index;
+   * this only controls which language the returned text is rendered in.
+   */
+  locale?: string;
   /** Maximum number of results to return */
   limit?: number;
   /** Number of results to skip (for pagination) */

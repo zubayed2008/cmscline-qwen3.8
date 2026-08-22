@@ -1,11 +1,22 @@
 import dbConnect from '@/utils/db-connect';
 import Page, { IPage } from '@/models/page-model';
 import { VersionService } from '@/services/version-service';
+import { resolveLocalized, toTranslationsRecord } from '@/utils/localized-content';
+import type { Locale } from '@/utils/locale-config';
+
+/**
+ * Per-locale overrides stored in the `translations` map (Phase 15.5).
+ * Keyed by locale code, e.g. { bn: { title: '...', content: '...' } }.
+ */
+export interface TranslationsInput {
+  [locale: string]: { title?: string; content?: string };
+}
 
 export interface CreatePageInput {
   title: string;
   slug: string;
   content: string;
+  translations?: TranslationsInput;
   isDefaultHomepage?: boolean;
   isActive?: boolean;
 }
@@ -14,6 +25,7 @@ export interface UpdatePageInput {
   title?: string;
   slug?: string;
   content?: string;
+  translations?: TranslationsInput;
   isDefaultHomepage?: boolean;
   isActive?: boolean;
 }
@@ -46,6 +58,7 @@ export const PageService = {
         title: page.title,
         slug: page.slug,
         content: page.content,
+        translations: toTranslationsRecord(page.translations),
         changeSummary: 'Initial version',
       });
     } catch (error) {
@@ -78,6 +91,7 @@ export const PageService = {
           title: currentPage.title,
           slug: currentPage.slug,
           content: currentPage.content,
+          translations: toTranslationsRecord(currentPage.translations),
           changeSummary: 'Snapshot before update',
         });
       } catch (error) {
@@ -93,6 +107,9 @@ export const PageService = {
     }
 
     const updateData: UpdatePageInput = { ...input };
+    // Phase 15.5: replace the whole translations map when provided
+    // (translation-only changes intentionally do NOT trigger a version snapshot)
+    if (input.translations !== undefined) updateData.translations = input.translations;
     if (input.slug) {
       updateData.slug = input.slug.toLowerCase();
     }
@@ -131,18 +148,31 @@ export const PageService = {
 
   /**
    * Gets a page by slug.
+   * Phase 15.5: pass `locale` to resolve translated title/content (falls back
+   * to the original fields when no translation exists).
    */
-  async getPageBySlug(slug: string): Promise<IPage | null> {
+  async getPageBySlug(slug: string, locale?: Locale): Promise<IPage | null> {
     await dbConnect();
-    return Page.findOne({ slug: slug.toLowerCase() });
+    const page = await Page.findOne({ slug: slug.toLowerCase() });
+
+    if (page && locale && locale !== 'en') {
+      Object.assign(page, resolveLocalized(page, locale));
+    }
+    return page;
   },
 
   /**
    * Gets the default homepage (active only, for public views).
+   * Phase 15.5: pass `locale` to resolve translated title/content.
    */
-  async getDefaultHomepage(): Promise<IPage | null> {
+  async getDefaultHomepage(locale?: Locale): Promise<IPage | null> {
     await dbConnect();
-    return Page.findOne({ isDefaultHomepage: true, isActive: true });
+    const page = await Page.findOne({ isDefaultHomepage: true, isActive: true });
+
+    if (page && locale && locale !== 'en') {
+      Object.assign(page, resolveLocalized(page, locale));
+    }
+    return page;
   },
 
   /**

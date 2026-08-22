@@ -34,6 +34,7 @@ describe('SearchService', () => {
         type: 'all',
         limit: 20,
         offset: 0,
+        locale: 'en',
       });
       expect(result).toEqual(mockResponse);
     });
@@ -53,6 +54,7 @@ describe('SearchService', () => {
         type: 'all',
         limit: 20,
         offset: 0,
+        locale: 'en',
       });
     });
   });
@@ -73,6 +75,7 @@ describe('SearchService', () => {
         type: 'page',
         limit: 20,
         offset: 0,
+        locale: 'en',
       });
     });
   });
@@ -93,6 +96,7 @@ describe('SearchService', () => {
         type: 'blog',
         limit: 20,
         offset: 0,
+        locale: 'en',
       });
     });
   });
@@ -113,6 +117,7 @@ describe('SearchService', () => {
         type: 'all',
         limit: 20,
         offset: 0,
+        locale: 'en',
       });
     });
   });

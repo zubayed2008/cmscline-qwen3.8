@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist, Geist_Mono, Noto_Sans_Bengali } from 'next/font/google';
 import { cookies } from 'next/headers';
 import './globals.css';
 import UmamiAnalytics from '@/components/UmamiAnalytics';
@@ -13,6 +13,15 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+});
+
+// Bengali glyphs for Bangla (bn) content. Latin glyphs still resolve from
+// Geist first; the browser falls through to Noto Sans Bengali only for
+// characters Geist does not cover.
+const notoBengali = Noto_Sans_Bengali({
+  variable: '--font-noto-bengali',
+  subsets: ['bengali', 'latin'],
+  display: 'swap',
 });
 
 const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Enterprise CMS';
@@ -81,7 +90,7 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
     <html
       lang={lang}
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${notoBengali.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}

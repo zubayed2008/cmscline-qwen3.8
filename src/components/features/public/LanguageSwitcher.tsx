@@ -3,18 +3,13 @@
 import React, { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { getSupportedLocales, getDefaultLocale, type Locale } from '@/utils/i18n';
+import { LOCALE_NAMES } from '@/utils/locale-config';
 
 interface LanguageSwitcherProps {
   className?: string;
   position?: 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left';
   currentLocale?: Locale;
 }
-
-const localeNames: Record<Locale, string> = {
-  en: 'English',
-  es: 'Español',
-  fr: 'Français',
-};
 
 export default function LanguageSwitcher({
   className = '',
@@ -43,7 +38,7 @@ export default function LanguageSwitcher({
         aria-haspopup="true"
       >
         <span className="mr-1">🌐</span>
-        {localeNames[activeLocale] || activeLocale.toUpperCase()}
+        {LOCALE_NAMES[activeLocale] || activeLocale.toUpperCase()}
         <svg
           className={`ml-2 w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
@@ -81,7 +76,7 @@ export default function LanguageSwitcher({
                       activeLocale === locale ? 'text-blue-600 font-medium' : ''
                     }`}
                   >
-                    <span>{localeNames[locale] || locale.toUpperCase()}</span>
+                    <span>{LOCALE_NAMES[locale] || locale.toUpperCase()}</span>
                     {activeLocale === locale && (
                       <svg
                         className="inline-block w-4 h-4 ml-2 text-blue-500"

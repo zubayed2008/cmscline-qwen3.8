@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { SearchService } from '@/services/search-service';
 import type { SearchResponse } from '@/services/search/search-types';
+import { getLocale } from '@/utils/i18n';
 import SearchBar from '@/components/features/public/SearchBar';
 import SearchResults from '@/components/features/public/SearchResults';
 
@@ -34,7 +36,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   if (query.trim()) {
     const searchType = type === 'page' || type === 'blog' ? type : 'all';
-    results = await SearchService.search(query.trim(), searchType, 20, 0);
+    // Phase 15.5: localize result titles/excerpts via the NEXT_LOCALE cookie
+    const cookieStore = await cookies();
+    const locale = getLocale(cookieStore.get('NEXT_LOCALE')?.value);
+    results = await SearchService.search(query.trim(), searchType, 20, 0, locale);
   }
 
   return (

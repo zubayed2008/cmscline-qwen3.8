@@ -22,7 +22,24 @@ Enterprise CMS built with Next.js 16.3.1 App Router, MongoDB/Mongoose, TypeScrip
 5. NO CONVERSATIONAL CODE: The content parameters must contain ONLY valid, executable code. Do not include conversational text inside the code blocks.
 
 ## Current State
-Last commit: `e1e8ffc` - Phase 14: User Management.
+Last commit: `ff912c7` - added plan for bangla language support.
+
+### Recent Work (Phase 15.5 - Bangla Locale & Content Translation):
+- Created `src/utils/locale-config.ts` - single source of truth: LOCALES ['en','es','fr','bn'], Locale type, DEFAULT_LOCALE, LOCALE_NAMES (bn: 'বাংলা'), LOCALE_MAP incl. bn-bd/bn-in, isSupportedLocale type guard
+- Created `src/utils/localized-content.ts` - resolveLocalized(doc, locale) per-field fallback (translation -> base), toTranslationsRecord() Map->plain serializer for version snapshots/props, getRequestLocale(cookieValue)
+- Created `src/locales/bn/common.json` - full Bangla UI dictionary (common/navigation/footer/meta/ui namespaces)
+- Updated page-model/blog-model - embedded `translations` Map ({ bn: { title?, content? } }), zero-migration locale additions; text indexes extended to 'translations.bn.title'/'translations.bn.content'
+- Public views (home, [slug], blog list, blog/[slug], search) resolve NEXT_LOCALE cookie server-side -> locale-aware service calls + generateMetadata
+- Services: optional locale param on public getters only (admin CRUD untouched); create/update version snapshots include translations via toTranslationsRecord
+- Versioning integrity: ContentVersion schema + restoreVersion carry optional translations; restore writes back ONLY when present so pre-15.5 snapshots don't wipe existing translations; VersionHistory carries translations through compare model
+- Admin PageForm/BlogForm: English | বাংলা tabs (bn tab = optional Title + full RichTextEditor); empty bn fields omitted from payload; Zod translationEntrySchema added; prop-change sync extended to bn fields (restore refreshes Bangla tab too)
+- Search: locale flows through search-types -> search-service -> mongodb-search-provider -> GET /api/search; hit titles/excerpts localized via resolveLocalized
+- Refactored i18n.ts, proxy.ts, LanguageSwitcher.tsx onto locale-config (hardcoded 'en'|'es'|'fr' unions removed)
+- layout.tsx: added Noto_Sans_Bengali font variable (--font-noto-bengali, bengali+latin subsets, display swap) alongside Geist
+- Created `scripts/migrate-i18n-indexes.ts` + package.json script `migrate:i18n-indexes` - drops outdated text index, recreates Bangla-aware one (idempotent; REQUIRED once on existing DBs)
+- Created `src/__tests__/utils/localized-content.test.ts` (13 tests: fallback rules, Map/plain handling, partial translations, snapshot serialization); updated page/blog/search suites for locale params
+- Validation: 193/193 tests pass (12 suites), tsc clean, build OK, ESLint clean on touched files
+- Full implementation record appended to `implement_phase_15.md` (Phase 15.5 section); root `memory.md` updated
 
 ### Recent Work (Phase 11.1 - Content Versioning):
 - Created `src/models/content-version-model.ts` - ContentVersion schema (contentType enum page/blog, contentId refPath, version, title, slug, content, changedBy ref User, changeSummary) with compound index { contentType: 1, contentId: 1, version: -1 }

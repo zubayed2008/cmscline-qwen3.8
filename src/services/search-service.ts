@@ -13,15 +13,17 @@ export const SearchService = {
    * @param type - The content type to search (page, blog, or all)
    * @param limit - Maximum number of results to return
    * @param offset - Number of results to skip (for pagination)
+   * @param locale - Locale used for localized result titles/excerpts (Phase 15.5)
    */
   async search(
     query: string,
     type: SearchContentType | 'all' = 'all',
     limit: number = 20,
-    offset: number = 0
+    offset: number = 0,
+    locale: string = 'en'
   ): Promise<SearchResponse> {
     const provider = getSearchProvider();
-    return provider.search({ query, type, limit, offset });
+    return provider.search({ query, type, limit, offset, locale });
   },
 
   /**
@@ -41,8 +43,13 @@ export const SearchService = {
   /**
    * Search all content types (pages and blogs)
    */
-  async searchAll(query: string, limit: number = 20, offset: number = 0): Promise<SearchResponse> {
-    return this.search(query, 'all', limit, offset);
+  async searchAll(
+    query: string,
+    limit: number = 20,
+    offset: number = 0,
+    locale: string = 'en'
+  ): Promise<SearchResponse> {
+    return this.search(query, 'all', limit, offset, locale);
   },
 
   /**

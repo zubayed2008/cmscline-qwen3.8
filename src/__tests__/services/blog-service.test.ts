@@ -48,6 +48,7 @@ describe('BlogService', () => {
         slug: 'test-blog',
         content: 'Blog content',
         isActive: true,
+        translations: {},
       });
       expect(result.slug).toBe('test-blog');
     });

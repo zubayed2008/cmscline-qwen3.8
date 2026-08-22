@@ -1,5 +1,6 @@
 import dbConnect from '@/utils/db-connect';
 import Page from '@/models/page-model';
+import type { ContentTranslation } from '@/models/page-model';
 import Blog from '@/models/blog-model';
 import { generateExcerpt } from '@/utils/seo';
 import type {
@@ -39,6 +40,28 @@ export class MongoDBSearchProvider implements ISearchProvider {
   }
 
   /**
+   * Phase 15.5: pick the translated title/content for the requested locale,
+   * falling back to the English base fields when no translation exists.
+   */
+  private localizedText(
+    base: string,
+    translations:
+      | Map<string, ContentTranslation>
+      | Record<string, ContentTranslation>
+      | undefined,
+    locale: string,
+    field: 'title' | 'content'
+  ): string {
+    if (locale !== 'en' && translations) {
+      const entry =
+        translations instanceof Map ? translations.get(locale) : translations[locale];
+      const value = entry?.[field];
+      if (value) return value;
+    }
+    return base;
+  }
+
+  /**
    * Search for content matching the query using MongoDB $text search
    */
   async search(query: SearchQuery): Promise<SearchResponse> {
@@ -48,6 +71,8 @@ export class MongoDBSearchProvider implements ISearchProvider {
     const type = query.type || 'all';
     const limit = query.limit || 20;
     const offset = query.offset || 0;
+    // Phase 15.5: results are localized (title/excerpt) for this locale
+    const locale = query.locale || 'en';
 
     if (!searchQuery) {
       return { results: [], total: 0, query: searchQuery };
@@ -57,13 +82,13 @@ export class MongoDBSearchProvider implements ISearchProvider {
 
     // Search pages
     if (type === 'all' || type === 'page') {
-      const pageResults = await this.searchPages(searchQuery, limit, offset);
+      const pageResults = await this.searchPages(searchQuery, locale, limit, offset);
       results.push(...pageResults);
     }
 
     // Search blogs
     if (type === 'all' || type === 'blog') {
-      const blogResults = await this.searchBlogs(searchQuery, limit, offset);
+      const blogResults = await this.searchBlogs(searchQuery, locale, limit, offset);
       results.push(...blogResults);
     }
 
@@ -85,6 +110,7 @@ export class MongoDBSearchProvider implements ISearchProvider {
    */
   private async searchPages(
     searchQuery: string,
+    locale: string,
     limit: number,
     offset: number
   ): Promise<SearchResult[]> {
@@ -100,9 +126,14 @@ export class MongoDBSearchProvider implements ISearchProvider {
     return pages.map((page) => ({
       id: page._id.toString(),
       type: 'page' as SearchContentType,
-      title: page.title,
+      title: this.localizedText(page.title, page.translations, locale, 'title'),
       slug: page.slug,
-      excerpt: generateExcerpt(this.stripHtml(page.content), 200),
+      excerpt: generateExcerpt(
+        this.stripHtml(
+          this.localizedText(page.content, page.translations, locale, 'content')
+        ),
+        200
+      ),
       score: (page as unknown as { score: number }).score || 0,
       createdAt: page.createdAt,
       updatedAt: page.updatedAt,
@@ -114,6 +145,7 @@ export class MongoDBSearchProvider implements ISearchProvider {
    */
   private async searchBlogs(
     searchQuery: string,
+    locale: string,
     limit: number,
     offset: number
   ): Promise<SearchResult[]> {
@@ -145,9 +177,14 @@ export class MongoDBSearchProvider implements ISearchProvider {
       return {
         id: blog._id.toString(),
         type: 'blog' as SearchContentType,
-        title: blog.title,
+        title: this.localizedText(blog.title, blog.translations, locale, 'title'),
         slug: blog.slug,
-        excerpt: generateExcerpt(this.stripHtml(blog.content), 200),
+        excerpt: generateExcerpt(
+          this.stripHtml(
+            this.localizedText(blog.content, blog.translations, locale, 'content')
+          ),
+          200
+        ),
         score: (blog as unknown as { score: number }).score || 0,
         createdAt: blog.createdAt,
         updatedAt: blog.updatedAt,

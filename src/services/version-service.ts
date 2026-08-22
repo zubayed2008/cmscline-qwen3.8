@@ -13,6 +13,8 @@ export interface CreateVersionInput {
   title: string;
   slug: string;
   content: string;
+  /** Phase 15.5: per-locale translations snapshot */
+  translations?: Record<string, { title?: string; content?: string }>;
   changedBy?: string;
   changeSummary?: string;
 }
@@ -41,6 +43,20 @@ function resolveChangedBy(explicit?: string): string | undefined {
   if (explicit) return explicit;
   const context = getAuditContext();
   return context?.userId && context.userId !== 'system' ? context.userId : undefined;
+}
+
+/**
+ * Converts a version's translations (Mongoose Map or plain object) into a
+ * plain record for findByIdAndUpdate. Returns undefined when empty so old
+ * versions (created before Phase 15.5) leave existing translations untouched.
+ */
+function versionTranslationsToRecord(
+  translations?: Map<string, { title?: string; content?: string }> | Record<string, { title?: string; content?: string }> | null
+): Record<string, { title?: string; content?: string }> | undefined {
+  if (!translations) return undefined;
+  const plain =
+    translations instanceof Map ? Object.fromEntries(translations) : { ...translations };
+  return Object.keys(plain).length > 0 ? plain : undefined;
 }
 
 /**
@@ -75,6 +91,7 @@ export const VersionService = {
       title: input.title,
       slug: input.slug.toLowerCase(),
       content: input.content,
+      translations: input.translations ?? {},
       changedBy,
       changeSummary: input.changeSummary,
     });
@@ -193,6 +210,10 @@ export const VersionService = {
           title: version.title,
           slug: version.slug.toLowerCase(),
           content: version.content,
+          // Phase 15.5: restore the snapshotted translations when present
+          ...(versionTranslationsToRecord(version.translations) !== undefined
+            ? { translations: versionTranslationsToRecord(version.translations) }
+            : {}),
         },
         { new: true, runValidators: true }
       );
@@ -227,6 +248,10 @@ export const VersionService = {
         title: version.title,
         slug: version.slug.toLowerCase(),
         content: version.content,
+        // Phase 15.5: restore the snapshotted translations when present
+        ...(versionTranslationsToRecord(version.translations) !== undefined
+          ? { translations: versionTranslationsToRecord(version.translations) }
+          : {}),
       },
       { new: true, runValidators: true }
     );

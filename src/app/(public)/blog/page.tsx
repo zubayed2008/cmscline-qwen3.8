@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { BlogService } from '@/services/blog-service';
+import { getLocale, formatDate } from '@/utils/i18n';
 
 // Interfaces for populated fields
 interface PopulatedMedia {
@@ -35,7 +37,10 @@ export const metadata: Metadata = {
  * Shows featured image, title, excerpt, category, and tags.
  */
 export default async function BlogPage() {
-  const blogs = await BlogService.getActiveBlogs();
+  // Phase 15.5: localize blog titles/content for the current locale
+  const cookieStore = await cookies();
+  const locale = getLocale(cookieStore.get('NEXT_LOCALE')?.value);
+  const blogs = await BlogService.getActiveBlogs(locale);
 
   return (
     <div className="py-16 bg-gray-50 min-h-screen">
@@ -126,11 +131,11 @@ export default async function BlogPage() {
                     {/* Meta Info */}
                     <div className="flex items-center justify-between text-sm text-gray-500">
                       <time dateTime={blog.createdAt.toISOString()}>
-                        {blog.createdAt.toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })}
+                        {formatDate(
+                          blog.createdAt,
+                          { year: 'numeric', month: 'long', day: 'numeric' },
+                          locale
+                        )}
                       </time>
                       <Link
                         href={`/blog/${blog.slug}`}

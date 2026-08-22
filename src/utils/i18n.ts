@@ -6,18 +6,23 @@
 import enCommon from '@/locales/en/common.json';
 import esCommon from '@/locales/es/common.json';
 import frCommon from '@/locales/fr/common.json';
+import bnCommon from '@/locales/bn/common.json';
+import {
+  LOCALES,
+  SUPPORTED_LOCALES,
+  DEFAULT_LOCALE,
+  isSupportedLocale,
+  type Locale,
+} from '@/utils/locale-config';
 
-// Available locales defined in next.config.ts
-export type Locale = 'en' | 'es' | 'fr';
-
-// Default locale from environment or fallback to 'en'
-const defaultLocale = process.env.NEXT_PUBLIC_DEFAULT_LOCALE || 'en';
+export type { Locale };
 
 // Loaded translation dictionaries (statically imported, works client & server)
 const translations: Record<Locale, Record<string, Record<string, string>>> = {
   en: enCommon,
   es: esCommon,
   fr: frCommon,
+  bn: bnCommon,
 };
 
 /**
@@ -26,11 +31,10 @@ const translations: Record<Locale, Record<string, Record<string, string>>> = {
  * @returns Current locale string
  */
 export function getLocale(cookieValue?: string): Locale {
-  if (cookieValue) {
-    const validLocales: Locale[] = ['en', 'es', 'fr'];
-    return validLocales.find((l): l is Locale => l === cookieValue) || (defaultLocale as Locale);
+  if (cookieValue && isSupportedLocale(cookieValue)) {
+    return cookieValue;
   }
-  return defaultLocale as Locale;
+  return isSupportedLocale(DEFAULT_LOCALE) ? DEFAULT_LOCALE : 'en';
 }
 
 /**
@@ -63,7 +67,7 @@ export function isLocale(locale: Locale, cookieValue?: string): boolean {
  * @returns Array of available locales
  */
 export function getSupportedLocales(): Locale[] {
-  return ['en', 'es', 'fr'] as const;
+  return [...LOCALES];
 }
 
 /**
@@ -71,7 +75,7 @@ export function getSupportedLocales(): Locale[] {
  * @returns Default locale string
  */
 export function getDefaultLocale(): Locale {
-  return defaultLocale as Locale;
+  return getLocale(DEFAULT_LOCALE);
 }
 
 /**
@@ -114,8 +118,7 @@ export function formatCurrency(amount: number, currency: string = 'USD', locale?
 export function extractLocaleFromPath(pathname: string): Locale | null {
   const match = pathname.match(/^\/([a-z]{2})/);
   if (!match) return null;
-  const candidate = match[1] as Locale;
-  return (['en', 'es', 'fr'] as const).includes(candidate) ? candidate : null;
+  return isSupportedLocale(match[1]) ? match[1] : null;
 }
 
 /**
@@ -142,7 +145,7 @@ export function t(namespace: string, key: string, locale?: Locale): string {
     return value;
   }
   // Fallback to default locale, then to the key itself
-  const fallback = translations[defaultLocale as Locale]?.[namespace]?.[key];
+  const fallback = translations[getLocale()]?.[namespace]?.[key];
   return fallback ?? key;
 }
 
@@ -169,6 +172,7 @@ const i18n = {
   hasLocalePrefix,
   t,
   getTranslations,
+  SUPPORTED_LOCALES,
 };
 
 export default i18n;

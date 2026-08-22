@@ -1,14 +1,22 @@
 import { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { PageService } from '@/services/page-service';
 import ContentRenderer from '@/components/features/content/ContentRenderer';
 import StructuredData from '@/components/features/seo/StructuredData';
 import { generateExcerpt, generateCanonicalUrl, generatePageStructuredData } from '@/utils/seo';
+import { getLocale } from '@/utils/i18n';
 
 export const dynamic = 'force-dynamic';
 
 const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Enterprise CMS';
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
+/** Phase 15.5: resolve the request locale from the NEXT_LOCALE cookie */
+async function getRequestLocale() {
+  const cookieStore = await cookies();
+  return getLocale(cookieStore.get('NEXT_LOCALE')?.value);
+}
 
 interface DynamicPageProps {
   params: Promise<{ slug: string }>;
@@ -16,7 +24,7 @@ interface DynamicPageProps {
 
 export async function generateMetadata({ params }: DynamicPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const page = await PageService.getPageBySlug(slug);
+  const page = await PageService.getPageBySlug(slug, await getRequestLocale());
 
   if (!page || !page.isActive) {
     return { title: 'Page Not Found' };
@@ -62,7 +70,7 @@ export async function generateMetadata({ params }: DynamicPageProps): Promise<Me
  */
 export default async function DynamicPage({ params }: DynamicPageProps) {
   const { slug } = await params;
-  const page = await PageService.getPageBySlug(slug);
+  const page = await PageService.getPageBySlug(slug, await getRequestLocale());
 
   // Return 404 if page not found or not active
   if (!page || !page.isActive) {

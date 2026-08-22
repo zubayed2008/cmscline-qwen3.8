@@ -13,7 +13,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "seed": "ts-node --project tsconfig.seed.json scripts/seed.ts"
+    "seed": "ts-node --project tsconfig.seed.json scripts/seed.ts",
+    "migrate:i18n-indexes": "ts-node --project tsconfig.seed.json scripts/migrate-i18n-indexes.ts"
   },
   "dependencies": {
     "@tiptap/extension-image": "^3.30.2",

@@ -1,5 +1,5 @@
 export { default as Page } from './page-model';
-export type { IPage } from './page-model';
+export type { IPage, ContentTranslation } from './page-model';
 
 export { default as Blog } from './blog-model';
 export type { IBlog } from './blog-model';

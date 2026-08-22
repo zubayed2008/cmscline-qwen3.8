@@ -9,6 +9,8 @@ export interface IContentVersion extends Document {
   title: string;
   slug: string;
   content: string;
+  /** Phase 15.5: per-locale translations captured at snapshot time */
+  translations?: Map<string, { title?: string; content?: string }>;
   changedBy: mongoose.Types.ObjectId;
   changeSummary?: string;
   createdAt: Date;
@@ -32,6 +34,11 @@ const contentVersionSchema = new Schema<IContentVersion>(
     title: { type: String, required: true },
     slug: { type: String, required: true },
     content: { type: String, required: true },
+    translations: {
+      type: Map,
+      of: new Schema({ title: { type: String }, content: { type: String } }, { _id: false }),
+      default: {},
+    },
     changedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     changeSummary: { type: String },
   },

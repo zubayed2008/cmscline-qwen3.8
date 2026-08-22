@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import PageService from '@/services/page-service';
 import VersionService from '@/services/version-service';
 import { requireAdmin } from '@/utils/auth';
+import { toTranslationsRecord } from '@/utils/localized-content';
 import PageForm from '../../_components/PageForm';
 import VersionHistory, {
   SerializedVersion,
@@ -30,6 +31,7 @@ export default async function EditPagePage({ params }: EditPageProps) {
     title: v.title,
     slug: v.slug,
     content: v.content,
+    translations: toTranslationsRecord(v.translations) ?? {},
     changeSummary: v.changeSummary,
     changedByName:
       (v.changedBy as unknown as { name?: string; email?: string } | null)?.name ??
@@ -43,6 +45,8 @@ export default async function EditPagePage({ params }: EditPageProps) {
     title: page.title,
     slug: page.slug,
     content: page.content,
+    // Phase 15.5: pass per-locale translations to the form (Mongoose Map -> plain object)
+    translations: toTranslationsRecord(page.translations) ?? {},
     isDefaultHomepage: page.isDefaultHomepage,
     isActive: page.isActive,
   };
@@ -58,6 +62,7 @@ export default async function EditPagePage({ params }: EditPageProps) {
           title: serializedPage.title,
           slug: serializedPage.slug,
           content: serializedPage.content,
+          translations: serializedPage.translations,
         }}
         initialVersions={serializedVersions}
       />

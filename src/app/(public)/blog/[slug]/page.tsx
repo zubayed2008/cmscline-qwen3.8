@@ -1,15 +1,23 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { BlogService } from '@/services/blog-service';
 import ContentRenderer from '@/components/features/content/ContentRenderer';
 import StructuredData from '@/components/features/seo/StructuredData';
 import { generateExcerpt, generateCanonicalUrl, generateOgImageUrl, generateBlogStructuredData } from '@/utils/seo';
+import { getLocale } from '@/utils/i18n';
 
 export const dynamic = 'force-dynamic';
 
 const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Enterprise CMS';
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
+/** Phase 15.5: resolve the request locale from the NEXT_LOCALE cookie */
+async function getRequestLocale() {
+  const cookieStore = await cookies();
+  return getLocale(cookieStore.get('NEXT_LOCALE')?.value);
+}
 
 // Interfaces for populated fields
 interface PopulatedMedia {
@@ -38,7 +46,7 @@ interface BlogDetailPageProps {
 
 export async function generateMetadata({ params }: BlogDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const blog = await BlogService.getBlogBySlug(slug);
+  const blog = await BlogService.getBlogBySlug(slug, await getRequestLocale());
 
   if (!blog || !blog.isActive) {
     return { title: 'Post Not Found' };
@@ -82,7 +90,7 @@ export async function generateMetadata({ params }: BlogDetailPageProps): Promise
  */
 export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   const { slug } = await params;
-  const blog = await BlogService.getBlogBySlug(slug);
+  const blog = await BlogService.getBlogBySlug(slug, await getRequestLocale());
 
   // Return 404 if blog not found or not active
   if (!blog || !blog.isActive) {

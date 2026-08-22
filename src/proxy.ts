@@ -21,23 +21,11 @@ import { rateLimit, RATE_LIMIT_CONFIG } from '@/utils/rate-limit';
 
 // ==========================================
 // i18n Locale Detection
+// Constants come from src/utils/locale-config.ts (single source of truth)
 // ==========================================
-const SUPPORTED_LOCALES = ['en', 'es', 'fr'] as const;
-const DEFAULT_LOCALE = process.env.NEXT_PUBLIC_DEFAULT_LOCALE || 'en';
-const LOCALE_COOKIE_NAME = 'NEXT_LOCALE';
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE, LOCALE_MAP } from '@/utils/locale-config';
 
-// Map browser language codes to supported locales
-const LOCALE_MAP: Record<string, string> = {
-  en: 'en',
-  'en-us': 'en',
-  'en-gb': 'en',
-  es: 'es',
-  'es-es': 'es',
-  'es-mx': 'es',
-  fr: 'fr',
-  'fr-fr': 'fr',
-  'fr-ca': 'fr',
-};
+const LOCALE_COOKIE_NAME = 'NEXT_LOCALE';
 
 /**
  * Resolve the preferred locale for a request.
