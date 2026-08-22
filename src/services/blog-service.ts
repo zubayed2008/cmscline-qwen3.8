@@ -1,6 +1,7 @@
 import dbConnect from '@/utils/db-connect';
 import Blog, { IBlog } from '@/models/blog-model';
 import { Types } from 'mongoose';
+import { VersionService } from '@/services/version-service';
 
 export interface CreateBlogInput {
   title: string;
@@ -51,14 +52,53 @@ export const BlogService = {
     }
 
     const blog = await Blog.create(blogData);
+
+    // Phase 11.1: create the initial version snapshot (best-effort)
+    try {
+      await VersionService.createVersion({
+        contentType: 'blog',
+        contentId: blog._id.toString(),
+        title: blog.title,
+        slug: blog.slug,
+        content: blog.content,
+        changeSummary: 'Initial version',
+      });
+    } catch (error) {
+      console.error('Failed to create initial blog version:', error);
+    }
+
     return blog;
   },
 
   /**
    * Updates a blog post by ID.
+   * Snapshots the previous state into version history when content changes (Phase 11.1).
    */
   async updateBlog(id: string, input: UpdateBlogInput): Promise<IBlog | null> {
     await dbConnect();
+
+    // Phase 11.1: snapshot the previous state before content changes (best-effort)
+    const currentBlog = await Blog.findById(id);
+    const contentChanged =
+      currentBlog &&
+      ((input.title !== undefined && input.title !== currentBlog.title) ||
+        (input.slug !== undefined && input.slug.toLowerCase() !== currentBlog.slug) ||
+        (input.content !== undefined && input.content !== currentBlog.content));
+
+    if (contentChanged && currentBlog) {
+      try {
+        await VersionService.createVersion({
+          contentType: 'blog',
+          contentId: id,
+          title: currentBlog.title,
+          slug: currentBlog.slug,
+          content: currentBlog.content,
+          changeSummary: 'Snapshot before update',
+        });
+      } catch (error) {
+        console.error('Failed to snapshot blog before update:', error);
+      }
+    }
 
     const updateData: Record<string, unknown> = {};
 
@@ -179,11 +219,22 @@ export const BlogService = {
   },
 
   /**
-   * Deletes a blog by ID.
+   * Deletes a blog by ID. Also removes its version history (Phase 11.1).
    */
   async deleteBlog(id: string): Promise<IBlog | null> {
     await dbConnect();
-    return Blog.findByIdAndDelete(id);
+    const blog = await Blog.findByIdAndDelete(id);
+
+    // Phase 11.1: clean up version history for the deleted blog (best-effort)
+    if (blog) {
+      try {
+        await VersionService.deleteVersionsForContent('blog', id);
+      } catch (error) {
+        console.error('Failed to delete versions for blog:', error);
+      }
+    }
+
+    return blog;
   },
 };
 

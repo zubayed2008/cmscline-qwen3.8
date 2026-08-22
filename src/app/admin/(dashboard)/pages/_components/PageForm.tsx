@@ -33,6 +33,24 @@ export default function PageForm({ initialData }: PageFormProps) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Track the initialData object we last synced from so we can detect
+  // server-side refreshes (e.g. after restoring a version in VersionHistory).
+  // React-approved "adjust state when a prop changes" pattern: compare during
+  // render and reset local state — only fires when the parent re-renders with
+  // genuinely new props, never while the user types.
+  const [lastSyncedData, setLastSyncedData] = useState(initialData);
+
+  if (initialData !== lastSyncedData) {
+    setLastSyncedData(initialData);
+    if (initialData) {
+      setTitle(initialData.title);
+      setSlug(initialData.slug);
+      setContent(initialData.content);
+      setIsDefaultHomepage(initialData.isDefaultHomepage);
+      setIsActive(initialData.isActive);
+    }
+  }
+
   const generateSlug = (value: string) => {
     return value
       .toLowerCase()

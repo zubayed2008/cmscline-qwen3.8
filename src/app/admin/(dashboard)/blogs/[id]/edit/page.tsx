@@ -1,8 +1,12 @@
 import { notFound } from 'next/navigation';
 import BlogService from '@/services/blog-service';
+import VersionService from '@/services/version-service';
 import { CategoryService, TagService } from '@/services/taxonomy-service';
 import { requireAdmin } from '@/utils/auth';
 import BlogForm from '../../_components/BlogForm';
+import VersionHistory, {
+  SerializedVersion,
+} from '@/components/features/admin/VersionHistory';
 
 export const dynamic = 'force-dynamic';
 
@@ -57,6 +61,22 @@ export default async function EditBlogPage({ params }: EditBlogPageProps) {
     name: t.name,
   }));
 
+  // Phase 11.1: load version history server-side
+  const versions = await VersionService.getVersions('blog', id);
+  const serializedVersions: SerializedVersion[] = versions.map((v) => ({
+    _id: v._id.toString(),
+    version: v.version,
+    title: v.title,
+    slug: v.slug,
+    content: v.content,
+    changeSummary: v.changeSummary,
+    changedByName:
+      (v.changedBy as unknown as { name?: string; email?: string } | null)?.name ??
+      (v.changedBy as unknown as { email?: string } | null)?.email ??
+      'Unknown',
+    createdAt: v.createdAt.toISOString(),
+  }));
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Blog</h1>
@@ -64,6 +84,16 @@ export default async function EditBlogPage({ params }: EditBlogPageProps) {
         initialData={serializedBlog}
         categories={serializedCategories}
         tags={serializedTags}
+      />
+      <VersionHistory
+        contentType="blog"
+        contentId={serializedBlog._id}
+        current={{
+          title: serializedBlog.title,
+          slug: serializedBlog.slug,
+          content: serializedBlog.content,
+        }}
+        initialVersions={serializedVersions}
       />
     </div>
   );

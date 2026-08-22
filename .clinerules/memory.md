@@ -24,6 +24,30 @@ Enterprise CMS built with Next.js 16.3.1 App Router, MongoDB/Mongoose, TypeScrip
 ## Current State
 Last commit: `e1e8ffc` - Phase 14: User Management.
 
+### Recent Work (Phase 11.1 - Content Versioning):
+- Created `src/models/content-version-model.ts` - ContentVersion schema (contentType enum page/blog, contentId refPath, version, title, slug, content, changedBy ref User, changeSummary) with compound index { contentType: 1, contentId: 1, version: -1 }
+- Created `src/services/version-service.ts` - Version service (createVersion with auto-increment + pruning at MAX_VERSIONS_PER_CONTENT=50, getVersions, getLatestVersion, getVersionById, compareVersions field-level diff, restoreVersion with pre-restore auto-snapshot, deleteVersion, deleteVersionsForContent, pruneVersions)
+- Created `src/app/api/versions/route.ts` - GET /api/versions?contentType=&contentId= (list history), POST /api/versions (manual snapshot) - admin only
+- Created `src/app/api/versions/[id]/route.ts` - GET single version, PUT restore (snapshots current state first so restore is undoable), DELETE version - admin only
+- Created `src/components/features/admin/VersionHistory.tsx` - Client component: version list with change summary/author/date, Restore button with confirm, Delete button, collapsible side-by-side compare view (Current vs any version, CHANGED badges, red/green diff highlighting)
+- Updated `src/services/page-service.ts` - Auto-versioning: v1 snapshot on createPage, snapshot-before-update on updatePage (only when title/slug/content change), version cleanup on deletePage (all best-effort try/catch)
+- Updated `src/services/blog-service.ts` - Same auto-versioning pattern for blogs
+- Updated `src/types/schemas.ts` - Added createContentVersionSchema, listVersionsQuerySchema, restoreVersionSchema
+- Updated `src/models/index.ts` - Added ContentVersion export
+- Integrated `<VersionHistory>` into pages/[id]/edit and blogs/[id]/edit admin screens; versions fetched SERVER-SIDE via VersionService.getVersions() in the edit pages and passed as serializable initialVersions props (no mount-time useEffect, follows Server Component data-fetching convention)
+- changedBy resolution: explicit param -> audit context (AsyncLocalStorage from withAudit wrapper) -> error; versioning never breaks main CRUD operations
+- Created `src/__tests__/services/version-service.test.ts` - 19 unit tests covering create/increment/diff/restore/delete/prune
+- Build verified successfully with /api/versions and /api/versions/[id] routes
+- All 180 tests pass (11 test suites)
+
+### Bug Fix - Version Restore Not Updating Edit Form:
+- **Symptom**: Clicking "Restore" in VersionHistory updated the DB correctly, but the PageForm/BlogForm (with TipTap editor) kept showing stale content
+- **Root cause**: Forms hold title/slug/content in `useState(initialData.x)` — the useState initializer only runs on MOUNT. After restore, `router.refresh()` re-renders the Server Component and passes fresh props, but the still-mounted client form ignores them; RichTextEditor's content-sync useEffect never fires because the form's `content` state never changes
+- **Fix in PageForm.tsx + BlogForm.tsx** - React "adjust state when a prop changes" pattern: track last-seen initialData via `const [lastSyncedData, setLastSyncedData] = useState(initialData)`, compare identity during render (`if (initialData !== lastSyncedData)`), and reset local fields from props. Identity comparison means it ONLY fires when the parent Server Component re-renders with new props (post-restore refresh), never while the user types (internal setState keeps the same props object)
+- **Fix in VersionHistory.tsx** - After successful restore: green success banner ("Restored version N...") + `window.scrollTo({top: 0})` so the user sees the form above update; banner cleared on next action/refresh
+- Restore flow now: PUT /api/versions/[id] -> DB restored -> fetchVersions() -> router.refresh() -> server passes new initialData -> form state syncs -> RichTextEditor useEffect calls editor.commands.setContent()
+
+
 ### Recent Work (Phase 13.2 - Audit Logging & Optional Redis Caching):
 - Created `src/models/audit-log-model.ts` - Audit log schema with action, entityType, entityId, userId, changes, ipAddress, userAgent fields
 - Created `src/services/audit-service.ts` - Audit service (createAuditLog, getAuditLogs, getEntityAuditLogs, getUserAuditLogs, getRecentAuditLogs, getAuditStats, deleteOldAuditLogs)

@@ -1,5 +1,6 @@
 import dbConnect from '@/utils/db-connect';
 import Page, { IPage } from '@/models/page-model';
+import { VersionService } from '@/services/version-service';
 
 export interface CreatePageInput {
   title: string;
@@ -37,14 +38,52 @@ export const PageService = {
       slug: input.slug.toLowerCase(),
     });
 
+    // Phase 11.1: create the initial version snapshot (best-effort)
+    try {
+      await VersionService.createVersion({
+        contentType: 'page',
+        contentId: page._id.toString(),
+        title: page.title,
+        slug: page.slug,
+        content: page.content,
+        changeSummary: 'Initial version',
+      });
+    } catch (error) {
+      console.error('Failed to create initial page version:', error);
+    }
+
     return page;
   },
 
   /**
    * Updates a page by ID. If isDefaultHomepage is set to true, unsets all other pages.
+   * Snapshots the previous state into version history when content changes (Phase 11.1).
    */
   async updatePage(id: string, input: UpdatePageInput): Promise<IPage | null> {
     await dbConnect();
+
+    // Phase 11.1: snapshot the previous state before content changes (best-effort)
+    const currentPage = await Page.findById(id);
+    const contentChanged =
+      currentPage &&
+      ((input.title !== undefined && input.title !== currentPage.title) ||
+        (input.slug !== undefined && input.slug.toLowerCase() !== currentPage.slug) ||
+        (input.content !== undefined && input.content !== currentPage.content));
+
+    if (contentChanged && currentPage) {
+      try {
+        await VersionService.createVersion({
+          contentType: 'page',
+          contentId: id,
+          title: currentPage.title,
+          slug: currentPage.slug,
+          content: currentPage.content,
+          changeSummary: 'Snapshot before update',
+        });
+      } catch (error) {
+        console.error('Failed to snapshot page before update:', error);
+      }
+    }
 
     if (input.isDefaultHomepage === true) {
       await Page.updateMany(
@@ -128,11 +167,22 @@ export const PageService = {
   },
 
   /**
-   * Deletes a page by ID.
+   * Deletes a page by ID. Also removes its version history (Phase 11.1).
    */
   async deletePage(id: string): Promise<IPage | null> {
     await dbConnect();
-    return Page.findByIdAndDelete(id);
+    const page = await Page.findByIdAndDelete(id);
+
+    // Phase 11.1: clean up version history for the deleted page (best-effort)
+    if (page) {
+      try {
+        await VersionService.deleteVersionsForContent('page', id);
+      } catch (error) {
+        console.error('Failed to delete versions for page:', error);
+      }
+    }
+
+    return page;
   },
 };
 

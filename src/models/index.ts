@@ -30,3 +30,6 @@ export type { IContactSubmission } from './contact-submission-model';
 
 export { default as AuditLog } from './audit-log-model';
 export type { IAuditLog, AuditAction } from './audit-log-model';
+
+export { default as ContentVersion } from './content-version-model';
+export type { IContentVersion, VersionContentType } from './content-version-model';

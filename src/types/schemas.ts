@@ -370,3 +370,35 @@ export const searchQuerySchema = z.object({
 });
 
 export type SearchQuerySchema = z.infer<typeof searchQuerySchema>;
+
+// ============================================================================
+// Content Version Schemas (Phase 11.1: Content Versioning)
+// ============================================================================
+
+const versionContentTypeEnum = z.enum(['page', 'blog']);
+
+export const createContentVersionSchema = z.object({
+  contentType: versionContentTypeEnum,
+  contentId: z.string().regex(objectIdRegex, 'Invalid content ID'),
+  title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
+  slug: z
+    .string()
+    .min(1, 'Slug is required')
+    .max(200, 'Slug must be 200 characters or less')
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase alphanumeric with hyphens'),
+  content: z.string().min(1, 'Content is required'),
+  changeSummary: z.string().max(500, 'Change summary must be 500 characters or less').optional(),
+});
+
+export const listVersionsQuerySchema = z.object({
+  contentType: versionContentTypeEnum,
+  contentId: z.string().regex(objectIdRegex, 'Invalid content ID'),
+});
+
+export const restoreVersionSchema = z.object({
+  changeSummary: z.string().max(500, 'Change summary must be 500 characters or less').optional(),
+});
+
+export type CreateContentVersionSchema = z.infer<typeof createContentVersionSchema>;
+export type ListVersionsQuerySchema = z.infer<typeof listVersionsQuerySchema>;
+export type RestoreVersionSchema = z.infer<typeof restoreVersionSchema>;
