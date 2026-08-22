@@ -249,3 +249,21 @@ Implementation per `implementation_plan.md` (7-part delivery) and `ACCOUNTING-IM
 - Gates green: `tsc --noEmit` ✓ · ESLint ✓ (0 errors on touched files) · **278/278 tests / 16 suites** ✓ · production build ✓ (all six report routes registered)
 - No schema/migration changes in Part 5 (reports are read-only aggregations)
 - Next Part: Part 6 (Admin UI - dashboard, accounts, journal entries, invoices + RecordPaymentModal, bills, customers, vendors, tabbed Reports, Periods; AdminSidebar "Financials" group; StatusBadge/MoneyDisplay)
+
+### Phase 18 - PART 6 COMPLETE (Admin UI) - commit PENDING (not committed)
+- Full admin module under `src/app/admin/(dashboard)/accounting/**` (21 routes registered in build):
+  - `page.tsx` Financial Dashboard - Cash & Bank (1100+1300) / AR (1200) / AP (2100) / Tax Payable (2200) cards from `LedgerService.balanceSheet()`, recent journal entries, quick-link grid
+  - `accounts/` - list (active toggle via PATCH isActive), `new` + `[id]/edit` with `AccountForm` (code/name/type/parent-group/postable toggle)
+  - `journal-entries/` - list, `new` (`JournalEntryForm`: dynamic lines, live Dr=Cr indicator), `[id]` detail (`JournalEntryDetail`: Submit/Approve/Post/Reverse-with-reason/Delete-draft per state)
+  - `invoices/` - list (Pay button for open), `new` (`InvoiceForm`: dynamic lines w/ per-line revenue account + tax %), `[id]` detail (`InvoiceDetail`: cancel draft, Record Payment) + shared `RecordPaymentModal` (customer/vendor, allocations vs open docs, POST /api/payments)
+  - `bills/` - list, `new` (`BillForm`: vendor + expense account lines), `[id]` detail (`BillDetail`: approve/post/cancel + vendor payment)
+  - `customers/` + `vendors/` - list (status toggle) + `new`/`[id]/edit` forms
+  - `periods/` - list with Seed Current Year, audited Close/Reopen (reason prompt)
+  - `reports/` - tabbed `ReportTables`: Trial Balance, P&L, Balance Sheet, AR Aging, AP Aging, General Ledger (paging + filters)
+- Shared presentational: `src/components/features/admin/accounting/{StatusBadge,MoneyDisplay,ErrorBanner}.tsx` (pure, no "use client" - usable in server + client)
+- Server pages fetch via services wrapped in `fetchAccounting` guard (`accounting/_lib/accounting-fetch.ts`) -> friendly ErrorBanner when PostgreSQL unreachable; serializers convert Dates -> ISO strings
+- `AdminSidebar.tsx` gained "Financials" group (9 links: dashboard, accounts, journal-entries, invoices, bills, customers, vendors, reports, periods) with lucide icons
+- React 19 `react-hooks/set-state-in-effect` violations fixed (state writes moved into async fetch callbacks)
+- Gates green: `tsc --noEmit` ✓ · ESLint ✓ (0 problems on new UI files) · **278/278 tests / 16 suites** ✓ · production build ✓ (21 new admin routes)
+- No schema/migration/API changes in Part 6 (UI consumes the existing Parts 2-5 API surface)
+- Next Part: Part 7 (Hardening & Docs - live verification of stale-version rejection, idempotency-key replay, forced mid-transaction rollback; `docs/accounting/ACCOUNTING-API.md`; spec §32 acceptance sweep)

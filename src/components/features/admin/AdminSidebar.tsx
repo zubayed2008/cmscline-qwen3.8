@@ -16,6 +16,12 @@ import {
   Mail,
   UserCircle,
   ClipboardList,
+  Wallet,
+  BookOpen,
+  Receipt,
+  Truck,
+  BarChart3,
+  CalendarDays,
 } from 'lucide-react';
 
 // Categorized navigation items with lucide icons
@@ -47,6 +53,20 @@ const navCategories = [
     items: [
       { href: '/admin/navigation', label: 'Navigation', icon: Navigation },
       { href: '/admin/service-items', label: 'Services', icon: Wrench },
+    ],
+  },
+  {
+    title: 'Financials',
+    items: [
+      { href: '/admin/accounting', label: 'Financial Dashboard', icon: Wallet },
+      { href: '/admin/accounting/accounts', label: 'Accounts', icon: BookOpen },
+      { href: '/admin/accounting/journal-entries', label: 'Journal Entries', icon: PenLine },
+      { href: '/admin/accounting/invoices', label: 'Invoices', icon: Receipt },
+      { href: '/admin/accounting/bills', label: 'Bills', icon: FileText },
+      { href: '/admin/accounting/customers', label: 'Customers', icon: Users },
+      { href: '/admin/accounting/vendors', label: 'Vendors', icon: Truck },
+      { href: '/admin/accounting/reports', label: 'Reports', icon: BarChart3 },
+      { href: '/admin/accounting/periods', label: 'Periods', icon: CalendarDays },
     ],
   },
   {
