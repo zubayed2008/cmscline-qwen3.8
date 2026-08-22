@@ -165,6 +165,30 @@ export class AccountHasPostingsError extends AccountingError {
   }
 }
 
+/** A payment allocation exceeds the invoice's remaining balance. */
+export class PaymentExceedsBalanceError extends AccountingError {
+  constructor(invoiceNumber: string) {
+    super(
+      `Payment allocation exceeds the outstanding balance of ${invoiceNumber}`,
+      'PAYMENT_EXCEEDS_BALANCE',
+      409
+    );
+    this.name = 'PaymentExceedsBalanceError';
+  }
+}
+
+/** Sum of allocations exceeds the payment amount. */
+export class PaymentAllocationExceedsAmountError extends AccountingError {
+  constructor() {
+    super(
+      'The sum of allocations cannot exceed the payment amount',
+      'PAYMENT_ALLOCATION_EXCEEDS_AMOUNT',
+      409
+    );
+    this.name = 'PaymentAllocationExceedsAmountError';
+  }
+}
+
 function isPgError(value: unknown): value is PgErrorShape & Error {
   return (
     value instanceof Error &&

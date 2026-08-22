@@ -59,6 +59,27 @@ export interface WriteJournalEntryInput {
   lines: JournalLineInput[];
 }
 
+/**
+ * Input for {@link JournalService.createPosted} - the direct-to-POSTED path
+ * used by document flows (invoice issue, payments) that must write their
+ * accounting in the same transaction as the business document (spec §8).
+ * Unlike DRAFT lines, accounts MAY repeat across lines (e.g. two invoice
+ * lines booking to one revenue account).
+ */
+export interface PostJournalInput {
+  entryDate: Date | string;
+  memo?: string | null;
+  reference?: string | null;
+  sourceType: AccountingSourceType;
+  sourceId: string;
+  lines: Array<{
+    accountId: string;
+    debit?: unknown;
+    credit?: unknown;
+    description?: string | null;
+  }>;
+}
+
 export interface JournalEntryWithLines {
   entry: JournalEntryRow;
   lines: JournalPostingRow[];
@@ -323,8 +344,8 @@ export const JournalService = {
    * the row, verify the period is OPEN, every line's account is postable +
    * active, and stored totals still balance - then stamp POSTED.
    */
-  async post(id: string, ctx: ActorContext): Promise<JournalEntryWithLines> {
-    return runInFinancialTransaction(async (tx) => {
+  async post(id: string, ctx: ActorContext, exec?: AccountingTx): Promise<JournalEntryWithLines> {
+    const write = async (tx: AccountingTx): Promise<JournalEntryWithLines> => {
       const current = await lockEntry(tx, id);
       if (current.status !== 'APPROVED') {
         throw new InvalidStateTransitionError('Journal entry', current.status, 'POSTED');
@@ -360,7 +381,8 @@ export const JournalService = {
         .returning();
 
       return { entry: entry!, lines };
-    });
+    };
+    return exec ? write(exec) : runInFinancialTransaction(write);
   },
 
   /**
@@ -373,14 +395,18 @@ export const JournalService = {
   async reverse(
     id: string,
     reason: string,
-    ctx: ActorContext
+    ctx: ActorContext,
+    exec?: AccountingTx
   ): Promise<{ original: JournalEntryRow; reversal: JournalEntryWithLines }> {
     const trimmed = reason?.trim();
     if (!trimmed) {
       throw new AccountingValidationError('A reason is required to reverse a posted entry');
     }
 
-    return runInFinancialTransaction(async (tx) => {
+    const write = async (tx: AccountingTx): Promise<{
+      original: JournalEntryRow;
+      reversal: JournalEntryWithLines;
+    }> => {
       const original = await lockEntry(tx, id);
       if (original.status !== 'POSTED') {
         throw new InvalidStateTransitionError('Journal entry', original.status, 'REVERSED');
@@ -452,7 +478,8 @@ export const JournalService = {
         original: updatedOriginal!,
         reversal: { entry: reversal!, lines: await loadLines(tx, reversal!.id) },
       };
-    });
+    };
+    return exec ? write(exec) : runInFinancialTransaction(write);
   },
 
   /** Hard-deletes a DRAFT (postings first). Anything past DRAFT is immutable history. */
@@ -511,5 +538,98 @@ export const JournalService = {
   },
 
   // __PART3_ANCHOR__
+
+  /**
+   * POSTs a journal entry directly, bypassing the DRAFT lifecycle. Used by
+   * document flows (invoice issue, customer payments) that must record their
+   * accounting ATOMICALLY in the SAME transaction as the document itself
+   * (spec §8) - the JE is financially effective the moment it lands.
+   *
+   * Differs from {@link createDraft}: accounts MAY repeat across lines, the
+   * entry is inserted as POSTED (with postingDate/source linkage), and the
+   * open-period + postable-account gates run here. Accepts an optional caller
+   * transaction; opens its own when none is given.
+   */
+  async createPosted(
+    input: PostJournalInput,
+    ctx: ActorContext,
+    exec?: AccountingTx
+  ): Promise<JournalEntryWithLines> {
+    const entryDate = toIsoDate(input.entryDate);
+    const todayIso = toIsoDate(new Date());
+
+    if (!Array.isArray(input.lines) || input.lines.length < 2) {
+      throw new AccountingValidationError('A posted journal entry requires at least two lines');
+    }
+
+    const normalized: NormalizedLine[] = input.lines.map((raw, index) => {
+      if (!raw?.accountId || typeof raw.accountId !== 'string') {
+        throw new AccountingValidationError(`Line ${index + 1}: accountId is required`);
+      }
+      const debit = parseMoney(raw.debit ?? '0.00');
+      const credit = parseMoney(raw.credit ?? '0.00');
+      const hasDebit = compareMoney(debit, '0.00') > 0;
+      const hasCredit = compareMoney(credit, '0.00') > 0;
+      if (!hasDebit && !hasCredit) {
+        throw new AccountingValidationError(`Line ${index + 1}: amount must be greater than zero`);
+      }
+      if (hasDebit && hasCredit) {
+        throw new AccountingValidationError(
+          `Line ${index + 1}: an amount may appear on only one side`
+        );
+      }
+      return {
+        accountId: raw.accountId,
+        debit,
+        credit,
+        description: raw.description?.trim() || null,
+      };
+    });
+
+    const totalDebit = sumMoney(normalized.map((l) => l.debit));
+    const totalCredit = sumMoney(normalized.map((l) => l.credit));
+    if (compareMoney(totalDebit, totalCredit) !== 0) {
+      throw new UnbalancedEntryError(input.reference ?? 'document');
+    }
+
+    const write = async (tx: AccountingTx): Promise<JournalEntryWithLines> => {
+      const period = await PeriodService.getOpenPeriodFor(tx, new Date(`${entryDate}T00:00:00Z`));
+      for (const line of normalized) {
+        await AccountService.getPostableAccount(tx, line.accountId);
+      }
+
+      const entryNumber = await NumberService.nextDocumentNumber(
+        tx,
+        'JE',
+        Number(entryDate.slice(0, 4))
+      );
+
+      const [entry] = await tx
+        .insert(journalEntries)
+        .values({
+          entryNumber,
+          entryDate,
+          postingDate: todayIso,
+          accountingPeriodId: period.id,
+          memo: input.memo?.trim() || null,
+          reference: input.reference?.trim() || null,
+          sourceType: input.sourceType,
+          sourceId: input.sourceId,
+          status: 'POSTED',
+          totalDebit,
+          totalCredit,
+          createdBy: ctx.userId,
+          createdByName: ctx.userName,
+          postedBy: ctx.userId,
+          postedAt: new Date(),
+        })
+        .returning();
+
+      await insertPostings(tx, entry!.id, normalized);
+      return { entry: entry!, lines: normalized as unknown as JournalPostingRow[] };
+    };
+
+    return exec ? write(exec) : runInFinancialTransaction(write);
+  },
 };
 

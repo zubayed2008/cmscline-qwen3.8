@@ -1,0 +1,111 @@
+FAIL src/__tests__/services/accounting/invoice-payment.test.ts
+  computeInvoiceTotals
+    √ computes tax-exclusive totals with half-up rounding (4 ms)
+    √ computes zero tax when no taxRate is supplied
+    √ sums multiple lines (1 ms)
+  JournalService.createPosted
+    √ creates a balanced POSTED entry with source linkage (4 ms)
+    √ rejects an unbalanced entry before writing (1 ms)
+    √ propagates a non-postable-account rejection and writes nothing (12 ms)
+  InvoiceService
+    √ createDraft persists an invoice + lines with server-computed totals (1 ms)
+    × issue posts Dr AR / Cr revenue / Cr tax and flips to ISSUED (2 ms)
+    √ issue rejects an already-issued invoice
+    × issue rejects when the AR control account is missing (8 ms)
+    √ cancel flips DRAFT -> CANCELLED (1 ms)
+    √ cancel rejects an issued invoice
+  PaymentService
+    × records a payment with allocation and posts Dr Cash / Cr AR (4 ms)
+    √ rejects an allocation exceeding the invoice balance
+    √ rejects allocations summing above the payment amount
+    × auto-allocates FIFO across two invoices (spec §12.2) (2 ms)
+    √ rejects a payment with no outstanding invoices (1 ms)
+
+  ● InvoiceService › issue posts Dr AR / Cr revenue / Cr tax and flips to ISSUED
+
+    MoneyFormatError: Invalid money amount: 2.0000. Expected a decimal string with at most 2 fraction digits.
+
+    [0m [90m 40 |[39m
+     [90m 41 |[39m   [36mif[39m ([36mtypeof[39m value [33m!==[39m [32m'string'[39m [33m||[39m [33m![39m[33mMONEY_PATTERN[39m[33m.[39mtest(value[33m.[39mtrim())) {
+    [31m[1m>[22m[39m[90m 42 |[39m     [36mthrow[39m [36mnew[39m [33mMoneyFormatError[39m(
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m 43 |[39m       [32m`Invalid money amount: ${String(value)}. Expected a decimal string with at most 2 fraction digits.`[39m
+     [90m 44 |[39m     )[33m;[39m
+     [90m 45 |[39m   }[0m
+
+      at parseMoney (src/utils/money.ts:42:11)
+      at multiplyMoney (src/utils/money.ts:77:46)
+      at computeLineTotals (src/services/accounting/invoice-service.ts:89:34)
+      at computeInvoiceTotals (src/services/accounting/invoice-service.ts:100:22)
+      at write (src/services/accounting/invoice-service.ts:311:22)
+      at Object.<anonymous> (src/__tests__/services/accounting/invoice-payment.test.ts:360:5)
+
+  ● InvoiceService › issue rejects when the AR control account is missing
+
+    expect(received).rejects.toThrow(expected)
+
+    Expected substring: "Accounts Receivable"
+    Received message:   "Invalid money amount: 2.0000. Expected a decimal string with at most 2 fraction digits."
+
+        [0m [90m 40 |[39m
+         [90m 41 |[39m   [36mif[39m ([36mtypeof[39m value [33m!==[39m [32m'string'[39m [33m||[39m [33m![39m[33mMONEY_PATTERN[39m[33m.[39mtest(value[33m.[39mtrim())) {
+        [31m[1m>[22m[39m[90m 42 |[39m     [36mthrow[39m [36mnew[39m [33mMoneyFormatError[39m(
+         [90m    |[39m           [31m[1m^[22m[39m
+         [90m 43 |[39m       [32m`Invalid money amount: ${String(value)}. Expected a decimal string with at most 2 fraction digits.`[39m
+         [90m 44 |[39m     )[33m;[39m
+         [90m 45 |[39m   }[0m
+
+      at parseMoney (src/utils/money.ts:42:11)
+      at multiplyMoney (src/utils/money.ts:77:46)
+      at computeLineTotals (src/services/accounting/invoice-service.ts:89:34)
+      at computeInvoiceTotals (src/services/accounting/invoice-service.ts:100:22)
+      at write (src/services/accounting/invoice-service.ts:311:22)
+      at Object.<anonymous> (src/__tests__/services/accounting/invoice-payment.test.ts:400:5)
+      at Object.toThrow (node_modules/expect/build/index.js:2155:20)
+      at Object.<anonymous> (src/__tests__/services/accounting/invoice-payment.test.ts:400:69)
+
+  ● PaymentService › records a payment with allocation and posts Dr Cash / Cr AR
+
+    expect(received).toMatchObject(expected)
+
+    - Expected  - 1
+    + Received  + 1
+
+      Object {
+    -   "accountId": "66666666-6666-4666-8666-666666666666",
+    +   "accountId": "33333333-3333-4333-8333-333333333333",
+        "credit": "0.00",
+        "debit": "115.00",
+      }
+
+    [0m [90m 489 |[39m     [36mconst[39m postings [33m=[39m inserts[[35m3[39m][33m.[39mvalue[33m.[39mvalues[33m.[39mmock[33m.[39mcalls[[35m0[39m][[35m0[39m][33m;[39m
+     [90m 490 |[39m     expect(postings)[33m.[39mtoHaveLength([35m2[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 491 |[39m     expect(postings[[35m0[39m])[33m.[39mtoMatchObject({ accountId[33m:[39m [33mCASH_ACCOUNT_ID[39m[33m,[39m debit[33m:[39m [32m'115.00'[39m[33m,[39m credit[33m:[39m [32m'0.00'[39m })[33m;[39m
+     [90m     |[39m                         [31m[1m^[22m[39m
+     [90m 492 |[39m     expect(postings[[35m1[39m])[33m.[39mtoMatchObject({ accountId[33m:[39m [33mAR_ACCOUNT_ID[39m[33m,[39m debit[33m:[39m [32m'0.00'[39m[33m,[39m credit[33m:[39m [32m'115.00'[39m })[33m;[39m
+     [90m 493 |[39m
+     [90m 494 |[39m     [36mconst[39m setPayload [33m=[39m (tx[33m.[39mupdate [36mas[39m jest[33m.[39m[33mMock[39m)[33m.[39mmock[33m.[39mresults[[35m0[39m][33m.[39mvalue[33m.[39m[36mset[39m[33m.[39mmock[33m.[39mcalls[[35m0[39m][[35m0[39m][33m;[39m[0m
+
+      at Object.<anonymous> (src/__tests__/services/accounting/invoice-payment.test.ts:491:25)
+
+  ● PaymentService › auto-allocates FIFO across two invoices (spec §12.2)
+
+    PaymentExceedsBalanceError: Payment allocation exceeds the outstanding balance of aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa
+
+    [0m [90m 500 |[39m     [36mconst[39m balanceDue [33m=[39m subtractMoney(invoice[33m.[39mtotalAmount[33m,[39m amountPaid)[33m;[39m
+     [90m 501 |[39m     [36mif[39m (compareMoney(balanceDue[33m,[39m [32m'0.00'[39m) [33m<[39m [35m0[39m) {
+    [31m[1m>[22m[39m[90m 502 |[39m       [36mthrow[39m [36mnew[39m [33mPaymentExceedsBalanceError[39m(invoice[33m.[39minvoiceNumber [33m?[39m[33m?[39m invoice[33m.[39mid)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 503 |[39m     }
+     [90m 504 |[39m
+     [90m 505 |[39m     [36mconst[39m updated [33m=[39m [36mawait[39m dbGuardUpdate(exec[33m,[39m invoiceId[33m,[39m {[0m
+
+      at Object.applyPaymentAllocation (src/services/accounting/invoice-service.ts:502:13)
+      at write (src/services/accounting/payment-service.ts:207:9)
+      at Object.<anonymous> (src/__tests__/services/accounting/invoice-payment.test.ts:559:20)
+
+Test Suites: 1 failed, 1 total
+Tests:       4 failed, 13 passed, 17 total
+Snapshots:   0 total
+Time:        0.524 s, estimated 2 s
+Ran all test suites matching src/__tests__/services/accounting/invoice-payment.test.ts.

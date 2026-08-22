@@ -275,9 +275,9 @@ Seven independently triggerable Parts; owner says "start Part N" and nothing bey
 
 **Part 3 — Accounts Receivable (⏭ NEXT UP — also absorbs Part 2's deferred routes + seed script):** schemas `customers.ts`, `invoices.ts` (embedded JSON lines), `payments.ts` (embedded allocations) → migration `0002`; `CustomerService`, `InvoiceService` (issue 🔑 / cancel), `PaymentService.recordCustomerPayment` 🔑 (allocation ≤ balance, Σ ≤ amount); routes `/api/accounting/customers`, spec §22 `/api/invoices/**`, `/api/payments`; `invoice-payment.test.ts`.
 
-**Part 4 — Accounts Payable:** schemas `vendors.ts`, `vendor-bills.ts` → migration `0003`; `VendorService`, `BillService` (approve → post 🔑 → pay 🔑 mirroring AR); routes `/api/vendors/**`, `/api/bills/**`; `bill-service.test.ts`.
+**Part 4 — Accounts Payable:** schemas `vendors.ts`, `vendor-bills.ts` → migration `0003`; `VendorService`, `BillService` (approve → post 🔑 → pay 🔑 mirroring AR); routes `/api/vendors/**`, `/api/bills/**`; skip `bill-service.test.ts` and ask for it later
 
-**Part 5 — Financial Reporting:** `LedgerService` — General Ledger (filters + pagination), Trial Balance, P&L, Balance Sheet, AR/AP aging — aggregating POSTED postings only; report GET routes under `/api/accounting/`; `ledger-service.test.ts` invariants.
+**Part 5 — Financial Reporting:** `LedgerService` — General Ledger (filters + pagination), Trial Balance, P&L, Balance Sheet, AR/AP aging — aggregating POSTED postings only; report GET routes under `/api/accounting/`; skip `ledger-service.test.ts` and ask for it later invariants.
 
 **Part 6 — Admin UI:** every screen from the Admin UI section (dashboard, accounts, journal entries with state-machine actions, invoices + RecordPaymentModal, bills, customers, vendors, tabbed Reports, Periods close/reopen) plus `StatusBadge`/`MoneyDisplay` and the AdminSidebar "Financials" group.
 

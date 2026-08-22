@@ -166,4 +166,29 @@ export const AccountService = {
     if (!account.isPostable) throw new AccountNotPostableError(account.code);
     return account;
   },
+
+  /** Resolves an account row by its unique code (e.g. '1200'). Returns null when absent. */
+  async getAccountByCode(exec: AccountingExec, code: string): Promise<AccountRow | null> {
+    const [row] = await exec
+      .select()
+      .from(accounts)
+      .where(eq(accounts.code, code))
+      .limit(1);
+    return row ?? null;
+  },
+
+  /** Flips the active flag (admin toggle); deactivation via {@link deactivateAccount} keeps its postings guard. */
+  async setAccountActive(
+    id: string,
+    isActive: boolean,
+    exec?: AccountingExec
+  ): Promise<AccountRow> {
+    const [updated] = await resolveExec(exec)
+      .update(accounts)
+      .set({ isActive, updatedAt: new Date() })
+      .where(eq(accounts.id, id))
+      .returning();
+    if (!updated) throw new AccountingNotFoundError('Account', id);
+    return updated;
+  },
 };

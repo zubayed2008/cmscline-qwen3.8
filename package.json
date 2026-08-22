@@ -15,6 +15,7 @@
     "test:coverage": "jest --coverage",
     "seed": "ts-node --project tsconfig.seed.json scripts/seed.ts",
     "migrate:i18n-indexes": "ts-node --project tsconfig.seed.json scripts/migrate-i18n-indexes.ts",
+    "seed:accounting": "ts-node --project tsconfig.seed.json scripts/seed-accounting.ts",
     "db:accounting:generate": "drizzle-kit generate",
     "db:accounting:migrate": "drizzle-kit migrate",
     "db:accounting:studio": "drizzle-kit studio",

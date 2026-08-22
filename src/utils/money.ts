@@ -97,3 +97,14 @@ export function isMoneyNegative(value: unknown): boolean {
 export function sumMoney(values: readonly unknown[]): string {
   return values.reduce<string>((acc, v) => addMoney(acc, v), '0.00');
 }
+
+/**
+ * Tax / surcharge helper: `percent` is applied to `amount` and rounded
+ * half-up to 2 dp. `percent` must be in [0, 100] (e.g. 5 for 5%).
+ */
+export function percentOfMoney(amount: unknown, percent: number | string): string {
+  return toDecimal(amount)
+    .times(new Decimal(percent))
+    .div(100)
+    .toFixed(DECIMAL_PLACES);
+}
