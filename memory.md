@@ -211,7 +211,7 @@ Enterprise Full-Stack CMS built with Next.js 16.3.1 App Router, MongoDB, and Mon
 - Content translation fallback rule: translations[locale].field → original base field (per field, never fails)
 - Run `npm run migrate:i18n-indexes` ONCE on any existing database after pulling Phase 15.5 (swaps old text index for the Bangla-aware one; idempotent)
 
-## Phase 18 - Accounting Engine (PostgreSQL + Drizzle) - PART 1 COMPLETE
+## Phase 18 - Accounting Engine (PostgreSQL + Drizzle) - PARTS 1 & 2 COMPLETE
 Implementation per `implementation_plan.md` (7-part delivery) and `ACCOUNTING-IMPLEMENTATION-SPEC.md`.
 - **Part 1 (Infrastructure & Foundation) DONE**: dedicated `cms_accounting` PostgreSQL database on the umami-db container (compose now exposes 5432, mounts `docker/postgres-init/`, healthcheck added)
 - `src/db/schema/accounting/enums.ts` - pgEnums whose value tuples MIRROR `src/types/accounting-types.ts` unions via compile-time `ENUM_UNION_GUARDS`; PAYMENT_STATUS v1 = ['COMPLETED'] (spec §12.1)
@@ -223,5 +223,14 @@ Implementation per `implementation_plan.md` (7-part delivery) and `ACCOUNTING-IM
 - `src/types/accounting-types.ts` - all domain unions + AR/AP payload contracts (CreateInvoiceInput, RecordPaymentInput, CustomerStatementResponse, VendorStatementResponse)
 - npm scripts: db:accounting:generate / migrate / studio / create / drop; env: ACCOUNTING_DATABASE_URL, ACCOUNTING_BASE_CURRENCY (.env + .env.local)
 - Tests: `src/__tests__/utils/money.test.ts` (20) + `accounting-errors.test.ts` (16); suite total 233/233 across 14 suites; tsc clean; ESLint clean; production build OK
-- **DEFERRED live gate**: Docker CLI unavailable on this machine - user must run once when Docker Desktop is up: `docker compose -f docker-compose.umami.yml up -d`, then `npm run db:accounting:create`, then `npm run db:accounting:migrate`
-- Mongo/Mongoose code untouched; Next Part: Part 2 (journal service + transactions + opening balances)
+- **DEFERRED live gate** (still pending, needs Docker Desktop on user machine): `docker compose -f docker-compose.umami.yml up -d`, then `npm run db:accounting:create`, then `npm run db:accounting:migrate`
+- Mongo/Mongoose code untouched
+
+### Phase 18 - PART 2 COMPLETE (Core Journal Engine) - commit `8a7ad8b`, branch `main_accounting`
+- Migration `drizzle/accounting/0001_heavy_meggan.sql`: `journal_entries` (lifecycle status enum, entryDate/postingDate, sourceType/sourceId linkage, totalDebit/totalCredit numeric(18,2), currency, optimistic-lock `version`, unique entry_number, self-FK reversalOfEntryId + reversalReason, period FK, indexes (status,entryDate desc)/(sourceType,sourceId)/(reversalOfEntryId)); `journal_postings` (CHECK exactly-one-sided amount > 0, positive line_number CHECK, entry/account FKs); `idempotency_records` (key PK, endpoint/userId/requestHash, responseStatus/responseBody jsonb, expiresAt index); accounts gained `is_postable`
+- `src/db/pg-client.ts`: added `runInFinancialTransaction` wrapping `accountingDb.transaction` for native PG ACID
+- `src/services/accounting/journal-service.ts` (515 lines): createDraft → updateDraft (DRAFT-only, version bump, totals recompute) → submitForApproval → approve → post (tx: status gate → open-period gate → per-line postable checks → SUM(debit)==SUM(credit) → JE + postings + counter atomic) → reverse (mirrored Dr/Cr entry, own number, cross-linked); deleteDraft; list/getById filters
+- Supporting services: `number-service` (SELECT…FOR UPDATE counter lock inside caller tx → JE-2026-000001), `period-service` (12 OPEN month seeding, getOpenPeriodFor throws PERIOD_CLOSED, audited close/reopen), `account-service` (CRUD, derived normalBalance, type-change guard once postings exist, soft-deactivate, shared getPostableAccount validator), `idempotency-service` (acquire/complete + lazy expiry purge), `audit-bridge` (best-effort Mongo AuditService OUTSIDE the PG tx), `service-types` (ActorContext, AccountingTx, resolveExec)
+- Tests: `src/__tests__/services/accounting/journal-service.test.ts` - 28 tests (state machine, optimistic-lock rejection, unbalanced rejection, PERIOD_CLOSED/ACCOUNT_NOT_POSTABLE/ACCOUNT_INACTIVE gates, mirror-line reversal) using chain-recording Drizzle tx stub + mocked siblings; suite total 261/261 across 15 suites; tsc clean; ESLint clean; build OK
+- **Deferred from Part 2 scope → carry into Part 3 FIRST:** API routes `/api/accounting/**` (accounts, periods ± close/reopen, journal-entries ± submit/approve/post/reverse) and the spec §29 seed script (CoA + fiscal year); only `db:accounting:*` npm-script family exists (drizzle-kit based; no ts-node migrator/seeder)
+- Next Part: Part 3 (Accounts Receivable - customers, invoices issue/cancel, payments with allocations)

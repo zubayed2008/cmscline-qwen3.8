@@ -8,6 +8,16 @@ Add a **double-entry financial accounting engine** to the Enterprise CMS as **Ph
 
 Scope & context: the module is self-contained in dedicated folders (`src/db/**` for client+schema, `src/services/accounting/**`, `src/utils/accounting/**`, `src/app/api/accounting/**` plus spec §22 root endpoints `/api/{invoices,payments,vendors,bills}`, `src/app/admin/(dashboard)/accounting`). Existing Mongoose models/services are not modified at all. Delivery is split into **7 independently verifiable Parts** which the owner triggers one at a time ("start Part N"); each Part ends green (`npx tsc --noEmit`, ESLint on touched files, `npm test`, `npm run build`) and is committed separately before the next begins.
 
+> ### ✅ PROGRESS LEDGER (updated after every Part — read this first)
+> - **Part 1 — Infrastructure & Foundation: COMPLETE** — commit `6f3066c`
+> - **Part 2 — Core Journal Engine: COMPLETE** — commit `8a7ad8b` (branch `main_accounting`, pushed)
+> - Gates green at both commits: `tsc --noEmit` ✓ · ESLint ✓ · **261/261 tests / 15 suites** ✓ · production build ✓
+> - **Actual npm scripts supersede any differently-named references below:** `db:accounting:generate` · `db:accounting:migrate` (drizzle-kit migrate — no ts-node migrator was built) · `db:accounting:studio` · `db:accounting:create` / `db:accounting:drop` (docker-compose psql role+DB bootstrap for fresh AND pre-existing volumes)
+> - **Carry-over into Part 3 (build these FIRST):** API routes `/api/accounting/**` (accounts, periods ± close/reopen, journal-entries ± submit/approve/post/reverse) and the spec §29 seed script (`scripts/seed-accounting.ts`) were scoped to Part 2 but deferred
+> - Actual util paths: `src/utils/money.ts` and `src/utils/accounting-errors.ts` (flat files, not `src/utils/accounting/*`)
+> - Deferred manual gate (needs Docker Desktop): compose up → `npm run db:accounting:create` → `npm run db:accounting:migrate` → seed (once the script lands)
+> - **Next: Part 3 — Accounts Receivable**
+
 ### Locked Design Decisions (owner-approved — mirrored in future-plan.md Phase 18)
 
 | Decision | Value |
@@ -157,7 +167,7 @@ src/app/api/bills/[id]/cancel/route.ts              POST
 | `docker/postgres-init/01-create-accounting-db.sql` (**new**) | Idempotent init executed on **first volume creation**: creates role `cms_accounting` (password from env or literal dev default) and database `cms_accounting`, grants ownership. Umami's own DB/user are untouched |
 | `scripts/create-accounting-db.ts` (**new**) | Fallback for **existing** volumes where `init.d` will not re-run: connects with an admin URL (`ACCOUNTING_DB_ADMIN_URL`, default umami superuser DSN), creates role + DB if absent |
 | `drizzle.config.ts` (**new**) | dialect `postgresql`, schema `./src/db/schema/accounting/index.ts`, out `./drizzle`, credentials from `ACCOUNTING_DATABASE_URL` |
-| `scripts/migrate-accounting.ts` (**new**) | Programmatic `migrate()` from `drizzle-orm/node-postgres/migrator`; wired to `npm run migrate:accounting` (ts-node, same convention as `migrate:i18n-indexes`) |
+| ~~`scripts/migrate-accounting.ts`~~ (**dropped during build**) | Not needed — `npm run db:accounting:migrate` (drizzle-kit) applies the committed migrations; seeding uses `scripts/seed-accounting.ts` via ts-node |
 | `scripts/seed-accounting.ts` (**new**) | Spec §29 Chart of Accounts (1000/1100/1200/1300, 2000/2100/2200, 3000/3100, 4000/4100, 5000/5100/5200 — group parents non-postable) + current-year 12 OPEN periods; idempotent re-runs; script `"seed:accounting"` |
 | `.env.local` / `.env.example` (**modify**) | Add `ACCOUNTING_DATABASE_URL=postgresql://cms_accounting:<secret>@localhost:5432/cms_accounting`, `ACCOUNTING_BASE_CURRENCY=USD`, optional `ACCOUNTING_DB_ADMIN_URL`. **Remove** the obsolete `REQUIRE_DB_TRANSACTIONS` idea — native PG transactions make it moot |
 | `docs/accounting/ACCOUNTING-API.md` (**new**, Part 7) | Endpoint/error-code contract |
@@ -165,8 +175,8 @@ src/app/api/bills/[id]/cancel/route.ts              POST
 
 ### Modified / deleted files (complete list)
 
-- **Modified:** `docker-compose.umami.yml`, `.env.local`/.env.example, `package.json` (deps + 4 scripts), `src/models/index.ts` is **NOT** touched (no Mongoose models added anymore), `AdminSidebar.tsx`.
-- **Deleted from disk during the pivot (recreated in Part 1):** `src/models/accounting-period-model.ts` and `src/models/financial-counter-model.ts` were Mongo drafts — superseded by PG tables, already removed. `src/utils/accounting-error.ts` (also already removed) comes back DB-agnostic under `src/utils/accounting/`.
+- **Modified:** `docker-compose.umami.yml`, `.env.local`/.env.example, `package.json` (deps + five `db:accounting:*` scripts), `src/models/index.ts` is **NOT** touched (no Mongoose models added anymore), `AdminSidebar.tsx`.
+- **Deleted from disk during the pivot (recreated in Part 1):** `src/models/accounting-period-model.ts` and `src/models/financial-counter-model.ts` were Mongo drafts — superseded by PG tables, already removed. The error module was recreated as **`src/utils/accounting-errors.ts`** (DB-agnostic typed errors + `mapPgError`).
 - **Never touched:** all existing Mongoose models/services/routes, `src/types/schemas.ts`.
 
 ## Functions
@@ -196,7 +206,7 @@ LedgerService.balanceSheet(asOf?: Date): Promise<IBalanceSheet>
 toAccountingErrorResponse(error: unknown): { success: false; error: string; code?: string; httpStatus: number }
 ```
 
-Modified functions: none removed, none signature-changed anywhere in existing code. Additive only: `AdminSidebar` nav array (new "Financials" group) and `package.json` scripts (`db:accounting:generate` → drizzle-kit generate, `migrate:accounting`, `seed:accounting`).
+Modified functions: none removed, none signature-changed anywhere in existing code. Additive only: `AdminSidebar` nav array (new "Financials" group, still pending — Part 6) and `package.json` scripts (the five `db:accounting:*` entries, done in Part 1).
 
 ## Classes
 
@@ -217,14 +227,16 @@ npm i drizzle-orm pg
 npm i -D drizzle-kit @types/pg
 ```
 
-**Package.json scripts added (4)** — runners follow the existing `ts-node scripts/…` seed pattern:
+**Package.json scripts added (5, as shipped in Part 1)** — all drizzle-kit driven; no custom ts-node migrator exists:
 
 | Script | Purpose |
 |---|---|
 | `db:accounting:generate` | `drizzle-kit generate` → SQL migrations emitted & committed to the repo |
-| `migrate:accounting` | `ts-node scripts/migrate-accounting.ts` → programmatic `migrate()` from `drizzle-orm/node-postgres/migrator`, using `ACCOUNTING_DB_ADMIN_URL` |
-| `studio:accounting` | Dev-time data browser (`drizzle-kit studio`) |
-| `seed:accounting` | `ts-node scripts/seed-accounting.ts` — CoA + fiscal-year seed, idempotent |
+| `db:accounting:migrate` | `drizzle-kit migrate` → applies committed migrations to `cms_accounting` |
+| `db:accounting:studio` | Dev-time data browser (`drizzle-kit studio`) |
+| `db:accounting:create` / `db:accounting:drop` | Create/drop the `cms_accounting` database + role via admin DSN (fallback for pre-existing umami volumes where init.d never ran) |
+
+Seeding runs directly with `npx ts-node scripts/seed-accounting.ts` (spec §29 CoA + current-year periods, idempotent).
 
 **Environment variables:** `ACCOUNTING_DATABASE_URL` (runtime least-privilege DML role), `ACCOUNTING_DB_ADMIN_URL` (DDL for migrate/seed only), `ACCOUNTING_BASE_CURRENCY=USD`.
 
@@ -234,34 +246,34 @@ npm i -D drizzle-kit @types/pg
 
 Three layers, mirroring the repo convention of mocking the data layer (`version-service.test.ts` mocks `dbConnect`; here we mock the Drizzle client):
 
-1. **Pure units (no DB):** `src/__tests__/utils/accounting/money.test.ts` — parse/normalize strings, half-up rounding against spec examples (`"100.005"` → `"100.01"` class cases), summation precision, malformed-input rejection; plus `toAccountingErrorResponse` mapping tests (domain codes, unexpected-error fallback).
+1. **Pure units (no DB):** `src/__tests__/utils/money.test.ts` (✅ 20 tests) — parse/normalize strings, half-up rounding against spec examples (`"100.005"` → `"100.01"` class cases), summation precision, malformed-input rejection; plus `src/__tests__/utils/accounting-errors.test.ts` (✅ 16 tests) covering the typed error hierarchy and SQLSTATE → HTTP mapping.
 2. **Services with mocked Drizzle:** suites in `src/__tests__/services/accounting/`. Every transactional method receives the `exec: AccountingTx` handle as a parameter, so tests inject a stub handle and `jest.mock('@/db/accounting-client', …)` where needed — asserting JE shapes, status transitions, allocation math, thrown `AccountingErrorCode`s without a live server:
    - **`journal-service.test.ts`** — spec §31 matrix: balanced accepted; `Dr 100 / Cr 90` rejected `JOURNAL_UNBALANCED`; debit-only / credit-only / <2-line rejected; group or inactive account rejected `ACCOUNT_NOT_POSTABLE` / `ACCOUNT_INACTIVE`; CLOSED-period post rejected `PERIOD_CLOSED`; edit/delete of POSTED rejected `DOCUMENT_NOT_EDITABLE`; reverse creates the mirrored cross-referenced entry, original unchanged, ΣDr = ΣCr preserved.
    - **`invoice-payment.test.ts`** — issue emits `Dr 1200 total / Cr 4000 subtotal / Cr 2200 tax`; payment emits `Dr Cash / Cr 1200`; allocations enforce ≤ invoice balance (`PAYMENT_EXCEEDS_BALANCE`) and Σ ≤ amount (`PAYMENT_ALLOCATION_EXCEEDS_AMOUNT`); status flow `ISSUED → PARTIALLY_PAID → PAID`; spec §12.2 multi-invoice scenario.
    - **`bill-service.test.ts`** — approve→post emits `Dr expense lines (+tax 2200) / Cr 2100`; vendor payment emits `Dr 2100 / Cr Cash`.
    - **`ledger-service.test.ts`** — Trial Balance ΣDr = ΣCr; Balance Sheet Assets = Liabilities + Equity + NetProfit; DRAFT entries excluded everywhere.
    - **`idempotency-service.test.ts`** — replayed key returns the original outcome exactly once.
-3. **Real-Postgres validation (manual trigger):** `docker compose -f docker-compose.umami.yml up -d umami-db` → `npm run migrate:accounting` → `npm run seed:accounting` → exercise flows via admin UI/curl. Required as a pre-commit gate from Part 2 onward; Part 7 additionally proves atomic rollback (forced mid-transaction failure leaves zero partial rows) and optimistic-lock rejection live.
+3. **Real-Postgres validation (manual trigger):** `docker compose -f docker-compose.umami.yml up -d umami-db` → `npm run db:accounting:create` → `npm run db:accounting:migrate` → `npx ts-node scripts/seed-accounting.ts` → exercise flows via admin UI/curl. **⏳ Still a DEFERRED gate — Docker Desktop unavailable on the dev machine during Parts 1–2**; Part 7 additionally proves atomic rollback (forced mid-transaction failure leaves zero partial rows) and optimistic-lock rejection live.
 
 Per-Part gates before each commit: `npx tsc --noEmit` · `npx eslint <touched files>` · `npm test` · `npm run build`.
 
 ## Implementation Order
 
-Seven independently triggerable Parts; owner says "start Part N" and nothing beyond it is built. Each Part ends green (`npx tsc --noEmit` · `npx eslint <touched files>` · `npm test` · `npm run build`) and is committed separately before the next begins. Migrations accumulate (`0000_*.sql`, `0001_*.sql`, …) and are always generated with `npm run db:accounting:generate` then applied with `npm run migrate:accounting`.
+Seven independently triggerable Parts; owner says "start Part N" and nothing beyond it is built. Each Part ends green (`npx tsc --noEmit` · `npx eslint <touched files>` · `npm test` · `npm run build`) and is committed separately before the next begins. Migrations accumulate (`0000_*.sql`, `0001_*.sql`, …) and are always generated with `npm run db:accounting:generate` then applied with `npm run db:accounting:migrate`.
 
-**Part 1 — Infrastructure & Foundation**
+**Part 1 — Infrastructure & Foundation — ✅ COMPLETE (commit `6f3066c`)**
 1. Modify `docker-compose.umami.yml` (`umami-db`: host port `5432:5432`, `./docker/postgres-init:/docker-entrypoint-initdb.d:ro` mount, `pg_isready` healthcheck); write `docker/postgres-init/01-create-accounting-db.sql`; extend `.env.local` / `.env.example`.
 2. Install packages: `npm i drizzle-orm pg` · `npm i -D drizzle-kit @types/pg` (`decimal.js@^10.6.0` already present).
 3. Create `src/db/pg-client.ts` (pooled Drizzle singleton + `AccountingDB`/`AccountingTx` types + `closeAccountingPool()`) and `drizzle.config.ts`.
 4. Create `src/types/accounting-types.ts`, `src/db/schema/accounting/enums.ts`, and the three foundation tables (`accounts.ts`, `accounting-periods.ts`, `document-counters.ts`) + `index.ts` barrel.
-5. Create `src/utils/accounting/money.ts` (decimal.js wrappers) and the error-code → HTTP mapping utility (`toAccountingErrorResponse`).
-6. Generate migration `0000_*.sql`; create `scripts/create-accounting-db.ts` (fallback for existing volumes), `scripts/migrate-accounting.ts`, `scripts/seed-accounting.ts` (spec §29 Chart of Accounts + current-year 12 OPEN periods, idempotent); wire the four `package.json` scripts.
-7. Tests: `src/__tests__/utils/accounting/money.test.ts` + error-mapping test. Live gate: `docker compose -f docker-compose.umami.yml up -d umami-db` → create-db script → migrate → seed against real Postgres.
-8. Append Part 1 status to `memory.md`; commit.
+5. ✅ Created `src/utils/money.ts` (decimal.js wrappers) and `src/utils/accounting-errors.ts` (typed error hierarchy + SQLSTATE → HTTP mapping via `mapPgError`).
+6. ✅ Generated `drizzle/accounting/0000_minor_machine_man.sql`; created `scripts/seed-accounting.ts` plus the DB create/drop helpers; wired the five `db:accounting:*` scripts (migration application is plain drizzle-kit — no custom migrator).
+7. ✅ Tests: `src/__tests__/utils/money.test.ts` + `accounting-errors.test.ts`. ⏳ Live gate remains deferred (Docker Desktop unavailable during Parts 1–2): `docker compose -f docker-compose.umami.yml up -d` → `npm run db:accounting:create` → `npm run db:accounting:migrate` → `npx ts-node scripts/seed-accounting.ts`.
+8. ✅ Part 1 status appended to `memory.md`; committed `6f3066c` and pushed to `origin/main_accounting`.
 
-**Part 2 — Core Journal Engine:** add `journal-entries.ts`, `postings.ts`, `idempotency-records.ts` schemas (migration `0001`); `runInFinancialTransaction` helper; services `NumberService` (row-locked counter inside caller tx), `PeriodService`, `AccountService`, `IdempotencyService`, `JournalService` (DRAFT → PENDING_APPROVAL → APPROVED → POSTED 🔑 → REVERSED 🔑 with optimistic `version`); API routes for accounts, periods (+close/reopen), journal-entries (+submit/approve/post/reverse); Mongo `AuditService` best-effort outside the PG transaction; `src/__tests__/services/accounting/journal-service.test.ts`.
+**Part 2 — Core Journal Engine — ✅ COMPLETE (commit `8a7ad8b`; API routes + seed script deferred to Part 3):** add `journal-entries.ts`, `postings.ts`, `idempotency-records.ts` schemas (migration `0001`); `runInFinancialTransaction` helper; services `NumberService` (row-locked counter inside caller tx), `PeriodService`, `AccountService`, `IdempotencyService`, `JournalService` (DRAFT → PENDING_APPROVAL → APPROVED → POSTED 🔑 → REVERSED 🔑 with optimistic `version`); API routes for accounts, periods (+close/reopen), journal-entries (+submit/approve/post/reverse); Mongo `AuditService` best-effort outside the PG transaction; `src/__tests__/services/accounting/journal-service.test.ts`.
 
-**Part 3 — Accounts Receivable:** schemas `customers.ts`, `invoices.ts` (embedded JSON lines), `payments.ts` (embedded allocations) → migration `0002`; `CustomerService`, `InvoiceService` (issue 🔑 / cancel), `PaymentService.recordCustomerPayment` 🔑 (allocation ≤ balance, Σ ≤ amount); routes `/api/accounting/customers`, spec §22 `/api/invoices/**`, `/api/payments`; `invoice-payment.test.ts`.
+**Part 3 — Accounts Receivable (⏭ NEXT UP — also absorbs Part 2's deferred routes + seed script):** schemas `customers.ts`, `invoices.ts` (embedded JSON lines), `payments.ts` (embedded allocations) → migration `0002`; `CustomerService`, `InvoiceService` (issue 🔑 / cancel), `PaymentService.recordCustomerPayment` 🔑 (allocation ≤ balance, Σ ≤ amount); routes `/api/accounting/customers`, spec §22 `/api/invoices/**`, `/api/payments`; `invoice-payment.test.ts`.
 
 **Part 4 — Accounts Payable:** schemas `vendors.ts`, `vendor-bills.ts` → migration `0003`; `VendorService`, `BillService` (approve → post 🔑 → pay 🔑 mirroring AR); routes `/api/vendors/**`, `/api/bills/**`; `bill-service.test.ts`.
 
